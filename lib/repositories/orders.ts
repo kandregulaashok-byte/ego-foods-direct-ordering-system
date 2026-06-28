@@ -42,7 +42,7 @@ export async function listOrders(filters?: {
 }
 
 export async function getOrderByCode(orderCode: string, whatsappNumber?: string) {
-  let query = createSupabaseAdmin()
+  const query = createSupabaseAdmin()
     .from("orders")
     .select("*, customers(*), order_items(*), payment_files(*)")
     .eq("order_code", orderCode)

@@ -1,6 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
 import { getEnv } from "@/lib/env";
 
 const COOKIE_NAME = "ego_dashboard_session";
@@ -32,21 +31,4 @@ export async function setDashboardCookie() {
 export async function clearDashboardCookie() {
   const jar = await cookies();
   jar.delete(COOKIE_NAME);
-}
-
-export function isAuthenticated(req: NextRequest) {
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  if (!token) return false;
-  const [issuedAt, signature] = token.split(".");
-  if (!issuedAt || !signature) return false;
-  const age = Date.now() - Number(issuedAt);
-  if (!Number.isFinite(age) || age > 1000 * 60 * 60 * 12) return false;
-  return sign(issuedAt) === signature;
-}
-
-export function redirectToLogin(req: NextRequest) {
-  const url = req.nextUrl.clone();
-  url.pathname = "/";
-  url.searchParams.set("next", req.nextUrl.pathname);
-  return NextResponse.redirect(url);
 }

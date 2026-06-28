@@ -4,6 +4,8 @@ import { BarChart3, ClipboardList, LayoutDashboard, LogOut, Settings, Soup, User
 import { logoutAction } from "@/app/dashboard/actions";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/orders", label: "Orders", icon: ClipboardList },

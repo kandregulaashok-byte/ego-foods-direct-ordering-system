@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { isAuthenticated, redirectToLogin } from "@/lib/auth";
+import { isAuthenticatedEdge, redirectToLogin } from "@/lib/auth-edge";
 
-export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/dashboard") && !isAuthenticated(req)) {
+export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/dashboard") && !(await isAuthenticatedEdge(req))) {
     return redirectToLogin(req);
   }
   return NextResponse.next();
