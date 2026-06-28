@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeSupabaseUrl } from "@/lib/supabase";
 
 function keyShape(value: string | undefined) {
   if (!value) return "missing";
@@ -29,7 +30,7 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(`${url}/rest/v1/restaurants?select=id,name&limit=1`, {
+    const res = await fetch(`${normalizeSupabaseUrl(url)}/rest/v1/restaurants?select=id,name&limit=1`, {
       headers: {
         apikey: serviceKey,
         Authorization: `Bearer ${serviceKey}`
