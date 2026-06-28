@@ -55,7 +55,7 @@ function LoginForm() {
           </div>
         </div>
         <Input
-          type="password"
+          type="text"
           placeholder="Dashboard password"
           {...form.register("password")}
           autoFocus
