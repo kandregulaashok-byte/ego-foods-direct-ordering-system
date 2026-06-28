@@ -9,6 +9,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
   await setDashboardCookie();
-  await writeAuditLog({ actor: "dashboard", action: "login", entityType: "session" });
+  writeAuditLog({ actor: "dashboard", action: "login", entityType: "session" }).catch(console.error);
   return NextResponse.json({ ok: true });
 }
