@@ -85,7 +85,7 @@ export async function createOrderFromCart(input: {
       restaurant_id: restaurant.id,
       customer_id: customer.id,
       order_code: makeOrderCode(),
-      status: input.paymentFileId ? "preparing" : "awaiting_screenshot",
+      status: input.paymentFileId || input.whatsappMessageId ? "preparing" : "awaiting_screenshot",
       total_paise: totalPaise,
       payment_file_id: input.paymentFileId ?? null,
       whatsapp_message_id: input.whatsappMessageId ?? null,

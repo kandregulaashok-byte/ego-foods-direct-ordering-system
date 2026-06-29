@@ -7,10 +7,9 @@ import {
 } from "@/lib/repositories/orders";
 import { getRestaurant } from "@/lib/repositories/restaurants";
 import { findOrCreateCustomer } from "@/lib/repositories/customers";
-import { savePaymentFile } from "@/lib/services/files";
 import { formatMoney } from "@/lib/utils";
 import type { CartItem, MenuItem, WhatsappSessionState } from "@/lib/types";
-import { getWhatsappMedia, sendWhatsappButtons, sendWhatsappList, sendWhatsappMessage } from "@/lib/whatsapp/client";
+import { sendWhatsappButtons, sendWhatsappList, sendWhatsappMessage } from "@/lib/whatsapp/client";
 import { clearSession, getSession, saveSession } from "@/lib/whatsapp/sessions";
 import { parseIntent } from "@/lib/whatsapp/parser";
 
@@ -106,23 +105,14 @@ async function sendMenuGroup(to: string, groupId: string) {
 }
 
 async function handleImageMessage(input: { from: string; mediaId: string; messageId: string }) {
-  const { customer, state } = await getSession(input.from);
+  const { state } = await getSession(input.from);
   if (!state.cart.length && !state.pendingOrderId) {
     await sendWhatsappMessage(input.from, "I received a file, but there is no active checkout. Send MENU to start an order.");
     return;
   }
-  const media = await getWhatsappMedia(input.mediaId);
-  const file = await savePaymentFile({
-    customerId: customer.id,
-    fileName: `${input.messageId}`,
-    contentType: media.contentType,
-    bytes: media.bytes,
-    whatsappMediaId: input.mediaId
-  });
   const order = await createOrderFromCart({
     whatsappNumber: input.from,
     cart: state.cart,
-    paymentFileId: file.id,
     whatsappMessageId: input.messageId,
     specialInstructions: state.specialInstructions
   });

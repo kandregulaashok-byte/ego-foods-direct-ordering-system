@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
     payload.entry?.flatMap((entry) =>
       entry.changes?.flatMap((change) => change.value?.messages ?? []) ?? []
     ) ?? [];
-  await Promise.all(messages.map((message) => handleWhatsappMessage(message)));
+  const results = await Promise.allSettled(messages.map((message) => handleWhatsappMessage(message)));
+  for (const result of results) {
+    if (result.status === "rejected") console.error("WhatsApp webhook failed", result.reason);
+  }
   return NextResponse.json({ ok: true });
 }
