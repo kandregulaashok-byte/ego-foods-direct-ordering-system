@@ -11,6 +11,23 @@ type WhatsappMessagePayload =
         body: { text: string };
         action: { buttons: { type: "reply"; reply: { id: string; title: string } }[] };
       };
+    }
+  | {
+      messaging_product: "whatsapp";
+      to: string;
+      type: "interactive";
+      interactive: {
+        type: "list";
+        header?: { type: "text"; text: string };
+        body: { text: string };
+        action: {
+          button: string;
+          sections: {
+            title: string;
+            rows: { id: string; title: string; description?: string }[];
+          }[];
+        };
+      };
     };
 
 function phoneNumberId() {
@@ -74,6 +91,53 @@ export async function sendWhatsappButtons(
   );
   if (!response.ok) {
     throw new Error(`WhatsApp button send failed: ${response.status} ${await response.text()}`);
+  }
+}
+
+export async function sendWhatsappList(input: {
+  to: string;
+  body: string;
+  button: string;
+  header?: string;
+  sectionTitle: string;
+  rows: { id: string; title: string; description?: string }[];
+}) {
+  const env = getEnv();
+  const response = await fetch(
+    `https://graph.facebook.com/v21.0/${phoneNumberId()}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: input.to,
+        type: "interactive",
+        interactive: {
+          type: "list",
+          header: input.header ? { type: "text", text: input.header } : undefined,
+          body: { text: input.body },
+          action: {
+            button: input.button.slice(0, 20),
+            sections: [
+              {
+                title: input.sectionTitle.slice(0, 24),
+                rows: input.rows.slice(0, 10).map((row) => ({
+                  id: row.id,
+                  title: row.title.slice(0, 24),
+                  description: row.description?.slice(0, 72)
+                }))
+              }
+            ]
+          }
+        }
+      } satisfies WhatsappMessagePayload)
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`WhatsApp list send failed: ${response.status} ${await response.text()}`);
   }
 }
 

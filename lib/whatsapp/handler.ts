@@ -10,7 +10,7 @@ import { findOrCreateCustomer } from "@/lib/repositories/customers";
 import { savePaymentFile } from "@/lib/services/files";
 import { formatMoney } from "@/lib/utils";
 import type { CartItem, MenuItem, WhatsappSessionState } from "@/lib/types";
-import { getWhatsappMedia, sendWhatsappButtons, sendWhatsappMessage } from "@/lib/whatsapp/client";
+import { getWhatsappMedia, sendWhatsappButtons, sendWhatsappList, sendWhatsappMessage } from "@/lib/whatsapp/client";
 import { clearSession, getSession, saveSession } from "@/lib/whatsapp/sessions";
 import { parseIntent } from "@/lib/whatsapp/parser";
 
@@ -21,24 +21,18 @@ type WhatsappInboundMessage = {
   text?: { body?: string };
   image?: { id?: string };
   document?: { id?: string };
-  interactive?: { button_reply?: { id?: string; title?: string } };
+  interactive?: {
+    button_reply?: { id?: string; title?: string };
+    list_reply?: { id?: string; title?: string };
+  };
 };
 
-function summarizeMenu(items: MenuItem[]) {
-  const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    acc[item.category] = acc[item.category] ?? [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
-  return Object.entries(grouped)
-    .map(([category, categoryItems]) => {
-      const rows = categoryItems
-        .map((item, index) => `${index + 1}. ${item.name} - ${formatMoney(item.price_paise)}`)
-        .join("\n");
-      return `*${category}*\n${rows}`;
-    })
-    .join("\n\n");
-}
+const menuGroups = [
+  { id: "group:nonveg-r", title: "Non-Veg Regular", category: "Non-Veg Palavs", size: "Regular" },
+  { id: "group:nonveg-l", title: "Non-Veg Large", category: "Non-Veg Palavs", size: "Large" },
+  { id: "group:veg", title: "Veg Palavs", category: "Veg Palavs" },
+  { id: "group:desserts", title: "Desserts", category: "Desserts" }
+];
 
 function cartSummary(cart: CartItem[]) {
   if (!cart.length) return "Your cart is empty.";
@@ -55,15 +49,60 @@ async function sendMenu(to: string) {
     await sendWhatsappMessage(to, "Menu is currently unavailable. Please check again shortly.");
     return;
   }
-  await sendWhatsappMessage(
+  await sendWhatsappList({
     to,
-    `Today's menu:\n\n${summarizeMenu(items)}\n\nReply "add item name" to add an item. Example: add Paneer Roll`
-  );
+    header: "EGO Foods Menu",
+    body: "Choose a category to view items.",
+    button: "View menu",
+    sectionTitle: "Categories",
+    rows: menuGroups.map((group) => ({
+      id: group.id,
+      title: group.title,
+      description: group.category
+    }))
+  });
 }
 
 function findMenuMatch(items: MenuItem[], value: string) {
   const needle = value.trim().toLowerCase();
   return items.find((item) => item.name.toLowerCase() === needle) ?? items.find((item) => item.name.toLowerCase().includes(needle));
+}
+
+function findMenuGroup(id: string) {
+  return menuGroups.find((group) => group.id === id);
+}
+
+function itemTitle(item: MenuItem) {
+  return item.name
+    .replace("Fry Piece Biryani (Palav)", "Fry Piece Biryani")
+    .replace("Special Veg Palav with Paneer Curry", "Paneer Veg Palav")
+    .replace("Veg Palav with Mushroom Curry", "Mushroom Veg Palav")
+    .replace(" - Regular", " R")
+    .replace(" - Large", " L");
+}
+
+async function sendMenuGroup(to: string, groupId: string) {
+  const group = findMenuGroup(groupId);
+  if (!group) {
+    await sendMenu(to);
+    return;
+  }
+  const items = (await listMenuItems({ availableOnly: true })).filter((item) => {
+    if (item.category !== group.category) return false;
+    return group.size ? item.name.includes(group.size) : true;
+  });
+  await sendWhatsappList({
+    to,
+    header: group.title,
+    body: "Tap an item to add it to your cart.",
+    button: "Choose item",
+    sectionTitle: group.title,
+    rows: items.map((item) => ({
+      id: `add:${item.id}`,
+      title: itemTitle(item),
+      description: formatMoney(item.price_paise)
+    }))
+  });
 }
 
 async function handleImageMessage(input: { from: string; mediaId: string; messageId: string }) {
@@ -121,7 +160,13 @@ export async function handleWhatsappMessage(message: WhatsappInboundMessage) {
 
   const text =
     type === "interactive"
-      ? String(message.interactive?.button_reply?.id ?? message.interactive?.button_reply?.title ?? "")
+      ? String(
+          message.interactive?.button_reply?.id ??
+            message.interactive?.list_reply?.id ??
+            message.interactive?.button_reply?.title ??
+            message.interactive?.list_reply?.title ??
+            ""
+        )
       : String(message.text?.body ?? "");
   const intent = parseIntent(text);
   const restaurant = await getRestaurant();
@@ -148,6 +193,12 @@ export async function handleWhatsappMessage(message: WhatsappInboundMessage) {
   if (intent.type === "menu") {
     await saveSession(from, { ...state, step: "browsing_menu" });
     await sendMenu(from);
+    return;
+  }
+
+  if (text.startsWith("group:")) {
+    await saveSession(from, { ...state, step: "browsing_menu" });
+    await sendMenuGroup(from, text);
     return;
   }
 
@@ -179,7 +230,8 @@ export async function handleWhatsappMessage(message: WhatsappInboundMessage) {
 
   if (intent.type === "add") {
     const items = await listMenuItems({ availableOnly: true });
-    const match = findMenuMatch(items, intent.value);
+    const selectedId = intent.value.startsWith("id:") ? intent.value.slice(3) : null;
+    const match = selectedId ? items.find((item) => item.id === selectedId) : findMenuMatch(items, intent.value);
     if (!match) {
       await sendWhatsappMessage(from, "I could not find that item. Send MENU to see available items.");
       return;
@@ -189,7 +241,15 @@ export async function handleWhatsappMessage(message: WhatsappInboundMessage) {
     if (existing) existing.quantity += 1;
     else cart.push({ menuItemId: match.id, name: match.name, pricePaise: match.price_paise, quantity: 1 });
     await saveSession(from, { ...state, step: "cart", cart, lastMenuItemId: match.id });
-    await sendWhatsappMessage(from, `${match.name} added.\n\n${cartSummary(cart)}\n\nReply a number to update the last item quantity, add more, REMOVE item, CLEAR, or CHECKOUT.`);
+    await sendWhatsappButtons(
+      from,
+      `${match.name} added.\n\nChoose quantity for this item:\n\n${cartSummary(cart)}`,
+      [
+        { id: "1", title: "1" },
+        { id: "2", title: "2" },
+        { id: "3", title: "3" }
+      ]
+    );
     return;
   }
 
@@ -198,7 +258,15 @@ export async function handleWhatsappMessage(message: WhatsappInboundMessage) {
       .map((item) => (item.menuItemId === state.lastMenuItemId ? { ...item, quantity: intent.value } : item))
       .filter((item) => item.quantity > 0);
     await saveSession(from, { ...state, step: "cart", cart });
-    await sendWhatsappMessage(from, `Updated cart:\n\n${cartSummary(cart)}`);
+    await sendWhatsappButtons(
+      from,
+      `Updated cart:\n\n${cartSummary(cart)}`,
+      [
+        { id: "menu", title: "Add more" },
+        { id: "checkout", title: "Checkout" },
+        { id: "clear", title: "Clear" }
+      ]
+    );
     return;
   }
 

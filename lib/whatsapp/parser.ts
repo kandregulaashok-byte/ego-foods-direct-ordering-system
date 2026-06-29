@@ -25,6 +25,7 @@ export function parseIntent(text: string): ParsedIntent {
   if (normalized.startsWith("remove")) return { type: "remove", value: text.replace(/^remove/i, "").trim() };
   if (/^\d+$/.test(normalized)) return { type: "quantity", value: Number(normalized) };
   if (normalized.startsWith("note ")) return { type: "instructions", value: text.slice(5).trim() };
+  if (text.startsWith("add:")) return { type: "add", value: `id:${text.slice(4)}` };
   if (normalized.startsWith("add ")) return { type: "add", value: text.slice(4).trim() };
   return { type: "unknown" };
 }
