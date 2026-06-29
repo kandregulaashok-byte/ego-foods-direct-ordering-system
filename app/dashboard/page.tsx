@@ -28,32 +28,33 @@ export default async function DashboardPage() {
     );
   }
   const cards = [
-    ["Today's Orders", metrics.todaysOrders],
-    ["Today's Revenue", formatMoney(metrics.todaysRevenuePaise)],
-    ["Preparing", metrics.preparing],
-    ["Ready", metrics.ready],
-    ["Completed", metrics.completed],
-    ["Pending", metrics.pending],
-    ["Average Order", formatMoney(metrics.averageOrderPaise)],
-    ["Repeat Customer %", `${metrics.returningPercent}%`],
-    ["Top Item", metrics.topItem],
-    ["Top Customer", metrics.topCustomer]
+    ["Today's Orders", metrics.todaysOrders, "accent-emerald"],
+    ["Today's Revenue", formatMoney(metrics.todaysRevenuePaise), "accent-gold"],
+    ["Preparing", metrics.preparing, "accent-cyan"],
+    ["Ready", metrics.ready, "accent-lime"],
+    ["Completed", metrics.completed, "accent-ink"],
+    ["Pending", metrics.pending, "accent-amber"],
+    ["Average Order", formatMoney(metrics.averageOrderPaise), "accent-cyan"],
+    ["Repeat Customer %", `${metrics.returningPercent}%`, "accent-emerald"],
+    ["Top Item", metrics.topItem, "accent-gold"],
+    ["Top Customer", metrics.topCustomer, "accent-ink"]
   ];
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="hero-panel flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Live operating view for today.</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">EGO FOODS CONTROL ROOM</p>
+          <h1 className="text-4xl font-semibold tracking-tight">Today&apos;s service</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Orders, revenue, kitchen status, and repeat customers in one live view.</p>
         </div>
-        <Link className="rounded-md border bg-white/55 px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-white/80" href="/dashboard/orders">
+        <Link className="rounded-md border border-white/65 bg-zinc-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-zinc-950/15 transition hover:bg-zinc-800" href="/dashboard/orders">
           Open orders
         </Link>
       </div>
       <LiveRefresh orderIds={recentOrders.map((order) => order.id)} />
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {cards.map(([label, value]) => (
-          <Card key={label} className="overflow-hidden">
+        {cards.map(([label, value, accent]) => (
+          <Card key={label} className={`metric-card ${accent} overflow-hidden`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground">{label}</CardTitle>
             </CardHeader>
@@ -63,7 +64,7 @@ export default async function DashboardPage() {
           </Card>
         ))}
       </section>
-      <Card>
+      <Card className="order-board">
         <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
         </CardHeader>

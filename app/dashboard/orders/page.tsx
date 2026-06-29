@@ -30,17 +30,18 @@ export default async function OrdersPage({
   const now = Date.now();
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="hero-panel flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Orders</h1>
-          <p className="text-sm text-muted-foreground">Search, filter, export, and update order progress.</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">LIVE ORDER BOARD</p>
+          <h1 className="text-4xl font-semibold tracking-tight">Kitchen queue</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Search, filter, export, and move orders through service.</p>
         </div>
         <Button asChild variant="outline">
           <Link href={`/api/orders/export?${query}`}>Export CSV</Link>
         </Button>
       </div>
       <LiveRefresh orderIds={orders.map((order) => order.id)} />
-      <form className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-5">
+      <form className="glass-bar grid gap-3 p-4 md:grid-cols-5">
         <Input name="search" placeholder="Search orders" defaultValue={filters.search} />
         <Input type="date" name="from" defaultValue={filters.from?.slice(0, 10)} />
         <Input type="date" name="to" defaultValue={filters.to?.slice(0, 10)} />
@@ -54,7 +55,7 @@ export default async function OrdersPage({
         </select>
         <Button>Apply</Button>
       </form>
-      <Card>
+      <Card className="order-board">
         <CardHeader>
           <CardTitle>{orders.length} orders</CardTitle>
         </CardHeader>

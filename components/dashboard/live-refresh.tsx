@@ -60,7 +60,7 @@ export function LiveRefresh({ orderIds = [] }: { orderIds?: string[] }) {
   }, [paused, router]);
 
   return (
-    <div className="glass-bar flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+    <div className="glass-bar live-command flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
       <div className="flex flex-wrap items-center gap-3">
         <span className="inline-flex items-center gap-2 font-medium">
           <span className={paused ? "h-2 w-2 rounded-full bg-amber-500" : "h-2 w-2 rounded-full bg-emerald-500"} />

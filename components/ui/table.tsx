@@ -2,13 +2,13 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
-  return <table className={cn("w-full caption-bottom text-sm", className)} {...props} />;
+  return <table className={cn("w-full caption-bottom border-separate border-spacing-0 text-sm", className)} {...props} />;
 }
 
 export function Th({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={cn("h-11 px-3 text-left align-middle font-medium text-muted-foreground", className)} {...props} />;
+  return <th className={cn("h-11 px-4 text-left align-middle text-[11px] font-bold uppercase tracking-wide text-muted-foreground", className)} {...props} />;
 }
 
 export function Td({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("border-t px-3 py-3 align-middle", className)} {...props} />;
+  return <td className={cn("border-t border-white/55 px-4 py-4 align-middle", className)} {...props} />;
 }
