@@ -22,7 +22,10 @@ export default async function OrdersPage({
   searchParams: Promise<{ status?: OrderStatus; search?: string; from?: string; to?: string }>;
 }) {
   const filters = await searchParams;
-  const orders = await listOrders(filters);
+  const orders = await listOrders(filters).catch((error) => {
+    console.error("Orders page failed", error);
+    return [];
+  });
   const query = new URLSearchParams(filters as Record<string, string>).toString();
   const now = Date.now();
   return (

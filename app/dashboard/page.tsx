@@ -7,7 +7,26 @@ import { getDashboardMetrics, listOrders } from "@/lib/repositories/orders";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const [metrics, recentOrders] = await Promise.all([getDashboardMetrics(), listOrders()]);
+  const [metrics, recentOrders] = await Promise.all([
+    getDashboardMetrics().catch((error) => {
+      console.error("Dashboard metrics failed", error);
+      return null;
+    }),
+    listOrders().catch((error) => {
+      console.error("Recent orders failed", error);
+      return [];
+    })
+  ]);
+  if (!metrics) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Could not load dashboard metrics. Check Vercel logs and Supabase env values.</p>
+        </div>
+      </div>
+    );
+  }
   const cards = [
     ["Today's Orders", metrics.todaysOrders],
     ["Today's Revenue", formatMoney(metrics.todaysRevenuePaise)],
