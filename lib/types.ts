@@ -61,6 +61,15 @@ export type Order = {
   special_instructions: string | null;
   payment_file_id: string | null;
   whatsapp_message_id: string | null;
+  payment_ocr?: {
+    amount_paise?: number | null;
+    paid_to_upi?: string | null;
+    paid_at?: string | null;
+    transaction_id?: string | null;
+    confidence?: "high" | "medium" | "low";
+    matches_expected_upi?: boolean | null;
+    matches_expected_amount?: boolean | null;
+  } | null;
   created_at: string;
   updated_at: string;
   customers?: Customer;

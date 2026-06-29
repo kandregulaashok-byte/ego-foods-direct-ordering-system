@@ -3,13 +3,15 @@ import { listMenuItems } from "@/lib/repositories/menu";
 import {
   createOrderFromCart,
   getLatestCustomerOrder,
-  getOrderByCode
+  getOrderByCode,
+  updateOrderPaymentOcr
 } from "@/lib/repositories/orders";
 import { getRestaurant } from "@/lib/repositories/restaurants";
 import { findOrCreateCustomer } from "@/lib/repositories/customers";
+import { analyzePaymentScreenshot } from "@/lib/services/payment-ocr";
 import { formatMoney } from "@/lib/utils";
 import type { CartItem, MenuItem, WhatsappSessionState } from "@/lib/types";
-import { sendWhatsappButtons, sendWhatsappList, sendWhatsappMessage } from "@/lib/whatsapp/client";
+import { getWhatsappMedia, sendWhatsappButtons, sendWhatsappList, sendWhatsappMessage } from "@/lib/whatsapp/client";
 import { clearSession, getSession, saveSession } from "@/lib/whatsapp/sessions";
 import { parseIntent } from "@/lib/whatsapp/parser";
 
@@ -121,6 +123,19 @@ async function handleImageMessage(input: { from: string; mediaId: string; messag
     input.from,
     `Payment screenshot received.\n\nOrder ${order.order_code} is being processed.\nPlease arrange Rapido/Uber/Porter yourself if delivery is required.`
   );
+  try {
+    const restaurant = await getRestaurant();
+    const media = await getWhatsappMedia(input.mediaId);
+    const paymentOcr = await analyzePaymentScreenshot({
+      bytes: media.bytes,
+      contentType: media.contentType,
+      expectedAmountPaise: order.total_paise,
+      expectedUpi: restaurant.upi_id
+    });
+    if (paymentOcr) await updateOrderPaymentOcr(order.id, paymentOcr);
+  } catch (error) {
+    console.error("Payment OCR failed", error);
+  }
 }
 
 export async function handleWhatsappMessage(message: WhatsappInboundMessage) {

@@ -61,6 +61,7 @@ export default async function OrdersPage({
                 <Th>WhatsApp</Th>
                 <Th>Items</Th>
                 <Th>Amount</Th>
+                <Th>Payment OCR</Th>
                 <Th>Screenshot</Th>
                 <Th>Status</Th>
                 <Th>Created</Th>
@@ -77,6 +78,19 @@ export default async function OrdersPage({
                     {order.order_items?.map((item) => `${item.quantity} x ${item.name_snapshot}`).join(", ")}
                   </Td>
                   <Td>{formatMoney(order.total_paise)}</Td>
+                  <Td className="min-w-44">
+                    {order.payment_ocr ? (
+                      <div className="space-y-1 text-xs">
+                        <div>{order.payment_ocr.amount_paise ? formatMoney(order.payment_ocr.amount_paise) : "Amount unreadable"}</div>
+                        <div>{order.payment_ocr.paid_to_upi ?? "UPI unreadable"}</div>
+                        <Badge status={order.payment_ocr.matches_expected_upi === false ? "cancelled" : "preparing"}>
+                          {order.payment_ocr.confidence ?? "low"}
+                        </Badge>
+                      </div>
+                    ) : (
+                      "Pending"
+                    )}
+                  </Td>
                   <Td>
                     {order.payment_files?.public_url ? (
                       <Link className="text-primary underline" href={order.payment_files.public_url} target="_blank">

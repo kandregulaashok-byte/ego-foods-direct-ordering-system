@@ -121,6 +121,14 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   return data as Order;
 }
 
+export async function updateOrderPaymentOcr(orderId: string, paymentOcr: unknown) {
+  const { error } = await createSupabaseAdmin()
+    .from("orders")
+    .update({ payment_ocr: paymentOcr })
+    .eq("id", orderId);
+  if (error) throw error;
+}
+
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const restaurant = await getRestaurant();
   const today = startOfDay(new Date()).toISOString();
