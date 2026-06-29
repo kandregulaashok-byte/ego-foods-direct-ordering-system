@@ -13,10 +13,15 @@ type WhatsappMessagePayload =
       };
     };
 
+function phoneNumberId() {
+  const configured = getEnv().WHATSAPP_PHONE_NUMBER_ID;
+  return configured === "dummy-for-now" ? "1163500686855255" : configured;
+}
+
 export async function sendWhatsappMessage(to: string, body: string) {
   const env = getEnv();
   const response = await fetch(
-    `https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    `https://graph.facebook.com/v21.0/${phoneNumberId()}/messages`,
     {
       method: "POST",
       headers: {
@@ -43,7 +48,7 @@ export async function sendWhatsappButtons(
 ) {
   const env = getEnv();
   const response = await fetch(
-    `https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    `https://graph.facebook.com/v21.0/${phoneNumberId()}/messages`,
     {
       method: "POST",
       headers: {
