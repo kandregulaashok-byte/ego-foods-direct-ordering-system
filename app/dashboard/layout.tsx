@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-white/82 transition hover:bg-white/14 hover:text-white"
+              className="sidebar-link flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition"
             >
               <item.icon size={17} />
               {item.label}

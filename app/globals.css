@@ -56,6 +56,22 @@ body {
   box-shadow: 18px 0 50px hsl(222 28% 11% / 0.18), inset -1px 0 0 hsl(0 0% 100% / 0.08);
 }
 
+.sidebar-link {
+  color: hsl(0 0% 100% / 0.92);
+  background: hsl(0 0% 100% / 0.08);
+  border: 1px solid hsl(0 0% 100% / 0.08);
+}
+
+.sidebar-link svg {
+  color: hsl(42 92% 70%);
+}
+
+.sidebar-link:hover {
+  color: white;
+  background: hsl(0 0% 100% / 0.16);
+  border-color: hsl(0 0% 100% / 0.18);
+}
+
 .glass-bar {
   border: 1px solid hsl(0 0% 100% / 0.76);
   border-radius: 0.5rem;
