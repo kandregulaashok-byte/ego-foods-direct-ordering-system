@@ -17,8 +17,8 @@ const nav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-card p-4 md:block">
+    <div className="dashboard-shell min-h-screen">
+      <aside className="glass-sidebar fixed inset-y-0 left-0 hidden w-64 border-r p-4 md:block">
         <div className="mb-6">
           <p className="text-lg font-semibold">Ego Foods</p>
           <p className="text-sm text-muted-foreground">Direct ordering</p>
@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition hover:bg-white/55"
             >
               <item.icon size={17} />
               {item.label}
@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </form>
       </aside>
       <div className="md:pl-64">
-        <header className="sticky top-0 z-10 border-b bg-background/95 px-4 py-3 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-10 border-b bg-background/80 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center justify-between">
             <p className="font-semibold">Ego Foods</p>
             <form action={logoutAction}>
@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-md border px-3 py-1 text-sm">
+              <Link key={item.href} href={item.href} className="rounded-md border bg-white/45 px-3 py-1 text-sm">
                 {item.label}
               </Link>
             ))}

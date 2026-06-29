@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
+import { LiveRefresh } from "@/components/dashboard/live-refresh";
 import { listOrders } from "@/lib/repositories/orders";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 import type { Order, OrderItem, OrderStatus } from "@/lib/types";
@@ -23,6 +24,7 @@ export default async function OrdersPage({
   const filters = await searchParams;
   const orders = await listOrders(filters);
   const query = new URLSearchParams(filters as Record<string, string>).toString();
+  const now = Date.now();
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -34,6 +36,7 @@ export default async function OrdersPage({
           <Link href={`/api/orders/export?${query}`}>Export CSV</Link>
         </Button>
       </div>
+      <LiveRefresh orderIds={orders.map((order) => order.id)} />
       <form className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-5">
         <Input name="search" placeholder="Search orders" defaultValue={filters.search} />
         <Input type="date" name="from" defaultValue={filters.from?.slice(0, 10)} />
@@ -70,7 +73,7 @@ export default async function OrdersPage({
             </thead>
             <tbody>
               {(orders as OrderRow[]).map((order) => (
-                <tr key={order.id}>
+                <tr key={order.id} className={now - new Date(order.created_at).getTime() < 120_000 ? "new-order-row" : undefined}>
                   <Td className="font-medium">{order.order_code}</Td>
                   <Td>{order.customers?.name ?? "Guest"}</Td>
                   <Td>{order.customers?.whatsapp_number}</Td>

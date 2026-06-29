@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
+import { LiveRefresh } from "@/components/dashboard/live-refresh";
 import { getDashboardMetrics, listOrders } from "@/lib/repositories/orders";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 
@@ -21,18 +22,24 @@ export default async function DashboardPage() {
   ];
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Live operating view for today.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Live operating view for today.</p>
+        </div>
+        <Link className="rounded-md border bg-white/55 px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-white/80" href="/dashboard/orders">
+          Open orders
+        </Link>
       </div>
+      <LiveRefresh orderIds={recentOrders.map((order) => order.id)} />
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map(([label, value]) => (
-          <Card key={label}>
+          <Card key={label} className="overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground">{label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{value}</p>
+              <p className="text-2xl font-semibold tracking-tight">{value}</p>
             </CardContent>
           </Card>
         ))}
