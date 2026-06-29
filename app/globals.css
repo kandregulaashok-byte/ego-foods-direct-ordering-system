@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: 166 48% 96%;
-  --foreground: 203 28% 12%;
+  --background: 150 24% 97%;
+  --foreground: 222 28% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 210 18% 16%;
-  --primary: 164 76% 26%;
+  --card-foreground: 222 28% 11%;
+  --primary: 158 64% 25%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 32 69% 92%;
-  --secondary-foreground: 28 50% 22%;
-  --muted: 210 18% 92%;
-  --muted-foreground: 210 9% 42%;
+  --secondary: 42 93% 88%;
+  --secondary-foreground: 32 84% 18%;
+  --muted: 210 18% 94%;
+  --muted-foreground: 218 12% 38%;
   --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 210 16% 84%;
-  --input: 210 16% 84%;
-  --ring: 164 76% 26%;
+  --border: 218 18% 82%;
+  --input: 218 18% 82%;
+  --ring: 158 64% 25%;
 }
 
 body {
   background:
-    linear-gradient(120deg, hsl(167 72% 94%) 0%, hsl(42 76% 95%) 44%, hsl(214 70% 95%) 100%);
+    linear-gradient(120deg, hsl(150 28% 97%) 0%, hsl(0 0% 100%) 48%, hsl(42 92% 96%) 100%);
   color: hsl(var(--foreground));
 }
 
@@ -33,9 +33,9 @@ body {
 .dashboard-shell {
   position: relative;
   background:
-    linear-gradient(90deg, hsl(203 28% 12% / 0.035) 1px, transparent 1px),
-    linear-gradient(0deg, hsl(203 28% 12% / 0.035) 1px, transparent 1px),
-    linear-gradient(135deg, hsl(164 76% 26% / 0.08), hsl(41 88% 55% / 0.12));
+    linear-gradient(90deg, hsl(222 28% 11% / 0.028) 1px, transparent 1px),
+    linear-gradient(0deg, hsl(222 28% 11% / 0.028) 1px, transparent 1px),
+    linear-gradient(135deg, hsl(158 64% 25% / 0.07), hsl(42 92% 54% / 0.1));
   background-size: 44px 44px, 44px 44px, auto;
 }
 
@@ -43,37 +43,37 @@ body {
 .glass-sidebar,
 .glass-bar {
   border-color: hsl(0 0% 100% / 0.55);
-  background: linear-gradient(145deg, hsl(0 0% 100% / 0.84), hsl(0 0% 100% / 0.52));
-  box-shadow: 0 24px 70px hsl(203 28% 12% / 0.12), inset 0 1px 0 hsl(0 0% 100% / 0.82);
+  background: linear-gradient(145deg, hsl(0 0% 100% / 0.92), hsl(0 0% 100% / 0.72));
+  box-shadow: 0 24px 70px hsl(222 28% 11% / 0.11), inset 0 1px 0 hsl(0 0% 100% / 0.88);
   backdrop-filter: blur(22px) saturate(1.35);
 }
 
 .glass-sidebar {
   border-color: hsl(0 0% 100% / 0.12);
   background:
-    linear-gradient(180deg, hsl(164 56% 13% / 0.96), hsl(203 37% 10% / 0.98)),
-    linear-gradient(135deg, hsl(41 88% 55% / 0.16), transparent);
-  box-shadow: 18px 0 50px hsl(203 28% 12% / 0.16), inset -1px 0 0 hsl(0 0% 100% / 0.08);
+    linear-gradient(180deg, hsl(222 28% 11% / 0.98), hsl(170 36% 13% / 0.98)),
+    linear-gradient(135deg, hsl(42 92% 54% / 0.12), transparent);
+  box-shadow: 18px 0 50px hsl(222 28% 11% / 0.18), inset -1px 0 0 hsl(0 0% 100% / 0.08);
 }
 
 .glass-bar {
-  border: 1px solid hsl(0 0% 100% / 0.62);
+  border: 1px solid hsl(0 0% 100% / 0.76);
   border-radius: 0.5rem;
 }
 
 .live-command {
   background:
-    linear-gradient(135deg, hsl(0 0% 100% / 0.88), hsl(164 76% 96% / 0.64)),
-    linear-gradient(90deg, hsl(164 76% 26% / 0.08), hsl(41 88% 55% / 0.08));
+    linear-gradient(135deg, hsl(0 0% 100% / 0.94), hsl(150 46% 96% / 0.84)),
+    linear-gradient(90deg, hsl(158 64% 25% / 0.08), hsl(42 92% 54% / 0.08));
 }
 
 .hero-panel {
-  border: 1px solid hsl(0 0% 100% / 0.7);
+  border: 1px solid hsl(0 0% 100% / 0.78);
   border-radius: 0.75rem;
   background:
-    linear-gradient(135deg, hsl(0 0% 100% / 0.9), hsl(0 0% 100% / 0.56)),
-    linear-gradient(90deg, hsl(164 76% 26% / 0.13), hsl(41 88% 55% / 0.16), hsl(203 28% 12% / 0.08));
-  box-shadow: 0 24px 70px hsl(203 28% 12% / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.86);
+    linear-gradient(135deg, hsl(0 0% 100% / 0.96), hsl(0 0% 100% / 0.76)),
+    linear-gradient(90deg, hsl(158 64% 25% / 0.1), hsl(42 92% 54% / 0.13));
+  box-shadow: 0 24px 70px hsl(222 28% 11% / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.9);
   padding: 1.5rem;
   backdrop-filter: blur(22px) saturate(1.35);
 }
@@ -91,19 +91,19 @@ body {
   background: var(--metric-accent);
 }
 
-.accent-emerald { --metric-accent: linear-gradient(90deg, hsl(164 76% 26%), hsl(152 70% 48%)); }
-.accent-gold { --metric-accent: linear-gradient(90deg, hsl(38 92% 50%), hsl(49 94% 68%)); }
-.accent-cyan { --metric-accent: linear-gradient(90deg, hsl(191 82% 42%), hsl(199 89% 70%)); }
-.accent-lime { --metric-accent: linear-gradient(90deg, hsl(123 56% 36%), hsl(86 72% 62%)); }
-.accent-amber { --metric-accent: linear-gradient(90deg, hsl(28 92% 50%), hsl(45 93% 58%)); }
-.accent-ink { --metric-accent: linear-gradient(90deg, hsl(203 28% 12%), hsl(220 18% 38%)); }
+.accent-emerald { --metric-accent: linear-gradient(90deg, hsl(158 64% 25%), hsl(151 64% 40%)); }
+.accent-gold { --metric-accent: linear-gradient(90deg, hsl(38 92% 42%), hsl(42 92% 58%)); }
+.accent-cyan { --metric-accent: linear-gradient(90deg, hsl(204 76% 38%), hsl(197 84% 54%)); }
+.accent-lime { --metric-accent: linear-gradient(90deg, hsl(142 58% 32%), hsl(120 50% 52%)); }
+.accent-amber { --metric-accent: linear-gradient(90deg, hsl(28 88% 42%), hsl(38 92% 54%)); }
+.accent-ink { --metric-accent: linear-gradient(90deg, hsl(222 28% 11%), hsl(220 15% 32%)); }
 
 .order-board {
   overflow: hidden;
 }
 
 .order-board thead {
-  background: hsl(0 0% 100% / 0.48);
+  background: hsl(222 28% 11% / 0.045);
 }
 
 .order-board tbody tr {
@@ -111,7 +111,7 @@ body {
 }
 
 .order-board tbody tr:hover {
-  background: hsl(0 0% 100% / 0.5);
+  background: hsl(150 42% 96% / 0.82);
 }
 
 .new-order-row {
@@ -120,7 +120,7 @@ body {
 
 @keyframes order-glow {
   0% {
-    background: hsl(164 76% 92% / 0.92);
+    background: hsl(42 92% 88% / 0.92);
     box-shadow: inset 4px 0 0 hsl(var(--primary));
   }
   100% {
