@@ -1,17 +1,19 @@
 $projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$running = Get-CimInstance Win32_Process |
-  Where-Object {
-    $_.Name -eq 'electron.exe' -and
-    $_.CommandLine -like "*$projectDir*" -and
-    $_.CommandLine -like "*electron.exe* ."
-  } |
+$shell = New-Object -ComObject WScript.Shell
+$window = Get-Process electron -ErrorAction SilentlyContinue |
+  Where-Object { $_.MainWindowTitle -like '*Kitchen OS*' } |
   Select-Object -First 1
 
-if ($running) {
-  $shell = New-Object -ComObject WScript.Shell
-  $null = $shell.AppActivate([int]$running.ProcessId)
+if ($window) {
+  $null = $shell.AppActivate($window.MainWindowTitle)
   exit
 }
+
+$running = Get-CimInstance Win32_Process |
+  Where-Object { $_.CommandLine -like "*$projectDir*" -and $_.Name -in @('electron.exe', 'node.exe') } |
+  Select-Object -First 1
+
+if ($running) { exit }
 
 Set-Location $projectDir
 if (-not (Test-Path "node_modules")) {
