@@ -1,6 +1,7 @@
-import { Printer, Store, ToggleLeft } from 'lucide-react';
-import { hasKitchenApi, updateKitchenSettings } from '../lib/kitchenApi';
+import { KeyRound, Printer, Store, ToggleLeft } from 'lucide-react';
+import { fetchKitchenSettings, hasKitchenApi, updateKitchenSettings } from '../lib/kitchenApi';
 import { useAppStore } from '../store/appStore';
+import { useEffect, useState } from 'react';
 
 const closedMessage = 'Orders are currently not being taken. If we resume in some time, we will update you.';
 
@@ -9,6 +10,16 @@ export default function SettingsScreen() {
   const setWhatsappOpen = useAppStore((state) => state.setWhatsappOpen);
   const printerOnline = useAppStore((state) => state.printerOnline);
   const setPrinterOnline = useAppStore((state) => state.setPrinterOnline);
+  const [whatsappToken, setWhatsappToken] = useState('');
+  const [tokenSaved, setTokenSaved] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (!hasKitchenApi) return;
+    fetchKitchenSettings()
+      .then((settings) => setTokenSaved(Boolean(settings.whatsapp_token_set)))
+      .catch(() => {});
+  }, []);
 
   async function toggleWhatsappOpen() {
     const next = !whatsappOpen;
@@ -19,6 +30,18 @@ export default function SettingsScreen() {
       setWhatsappOpen(Boolean(settings.is_open));
     } catch {
       setWhatsappOpen(!next);
+    }
+  }
+
+  async function saveWhatsappToken() {
+    if (!whatsappToken.trim()) return;
+    try {
+      const settings = await updateKitchenSettings({ whatsapp_access_token: whatsappToken.trim() });
+      setTokenSaved(Boolean(settings.whatsapp_token_set));
+      setWhatsappToken('');
+      setMessage('WhatsApp token saved. New bot replies will use it.');
+    } catch {
+      setMessage('Could not save WhatsApp token.');
     }
   }
 
@@ -41,7 +64,25 @@ export default function SettingsScreen() {
             <Printer size={18} /> Printer {printerOnline ? 'OK' : 'ISSUE'}
           </button>
         </Panel>
+        <Panel icon={KeyRound} title="Temporary WhatsApp Token">
+          <p className="text-[14px] font-semibold text-text-muted">
+            For test number tokens. Paste the new Meta token when the old one expires.
+          </p>
+          <div className="mt-4 grid gap-2">
+            <input
+              type="password"
+              value={whatsappToken}
+              onChange={(event) => setWhatsappToken(event.target.value)}
+              placeholder={tokenSaved ? 'Token saved' : 'Paste Meta access token'}
+              className="h-11 rounded-sm border border-[#eadfd7] px-3 text-[14px] font-bold"
+            />
+            <button type="button" disabled={!hasKitchenApi || !whatsappToken.trim()} onClick={saveWhatsappToken} className="inline-flex min-h-11 items-center justify-center rounded-sm bg-primary px-4 text-[13px] font-black text-white disabled:bg-text-muted">
+              Save WhatsApp Token
+            </button>
+          </div>
+        </Panel>
       </div>
+      {message ? <div className="mt-4 rounded-sm border border-[#eadfd7] bg-white p-3 text-[15px] font-bold text-text-dark">{message}</div> : null}
       <div className="mt-4 rounded-sm border border-[#eadfd7] bg-white p-4 shadow-card">
         <p className="text-[13px] font-black uppercase text-text-muted">Gateway</p>
         <p className="mt-2 text-[15px] font-bold text-text-dark">Payment gateway secrets stay only in backend .env.</p>
