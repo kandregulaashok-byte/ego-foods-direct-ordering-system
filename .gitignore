@@ -1,0 +1,10 @@
+node_modules/
+dist/
+release/
+.env
+.env.local
+desktop-smoke-result.txt
+outputs/
+*.log
+npm-debug.log*
+*.tmp
