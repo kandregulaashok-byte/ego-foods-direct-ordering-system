@@ -1,0 +1,663 @@
+START FROM SCRATCH PROMPT - KITCHEN OS DESKTOP APP
+Restaurant: Ego Foods
+Latest good product version: local Electron desktop dashboard
+Date: 2026-07-10
+
+Use this file as the full prompt/context in a new Codex conversation, another IDE, or with another developer.
+
+
+IMPORTANT CONTEXT
+=================
+This product is a Windows desktop application, not a Vercel web dashboard.
+
+The correct latest product is the local desktop app with the Swiggy-like order management layout:
+- left vertical sidebar
+- Ego Foods logo at top-left
+- MAIN KITCHEN top bar
+- status pills for Open Status, WhatsApp Ready, Printer Active
+- Import Swiggy button
+- WhatsApp ON/OFF button
+- Printer OK button
+- Order Queue tabs for New, Preparing, Ready, Picked Up, Past Orders
+- beige/off-white restaurant operations layout
+
+Known good GitHub repo:
+https://github.com/kandregulaashok-byte/ego-foods-direct-ordering-system
+
+Known good main commit:
+360da4a553bf95b33bc7c73d9e701e56dee118b2
+
+Latest documentation commit:
+0dd3083 Add complete product rebuild spec
+
+Backup branch:
+backup-good-desktop-layout-2026-07-10
+
+Restore tag:
+local-desktop-good-layout-2026-07-10
+
+Local good project path on original machine:
+C:\Users\Kandr\Documents\Codex\2026-07-04\kitchen-os-master-build-prompt-for
+
+Desktop backup folder on original machine:
+C:\Users\Kandr\Desktop\Kitchen OS Good Layout Backup 20260710-011337
+
+
+DO NOT CONFUSE THESE TWO PRODUCTS
+=================================
+1. Kitchen OS Desktop App
+   - This is the current latest product.
+   - Electron + React + Vite.
+   - Runs locally on Windows.
+   - Desktop shortcut launches it.
+   - URL during dev: http://127.0.0.1:5173/
+
+2. Old WhatsApp Backend / Vercel Dashboard
+   - Separate Next.js backend/web dashboard used earlier.
+   - Hosted at: https://ego-foods-direct-ordering-system.vercel.app
+   - Vercel currently fails if connected to this repo because this repo now contains Electron, not Next.js.
+   - Error expected on Vercel if auto-deploy runs:
+     "No Next.js version detected. Make sure your package.json has next..."
+
+Fix for Vercel:
+- Do not deploy this Electron desktop repo to Vercel.
+- Disable GitHub auto-deploy in the existing Vercel project.
+- If WhatsApp backend is needed, create a separate Next.js backend repo/project.
+
+
+PRODUCT GOAL
+============
+Build Kitchen OS for Ego Foods: a production-grade Windows desktop application for a restaurant owner/counter staff member to manage orders, Swiggy imports, WhatsApp orders, counter sales, inventory, expenses, cash ledger, and daily summaries.
+
+The user must be able to stand at the counter, open the desktop shortcut, and run the restaurant order workflow without technical knowledge.
+
+
+TECH STACK
+==========
+Desktop shell:
+- Electron.js
+
+Frontend:
+- React 18
+- Vite
+- Tailwind CSS
+
+State:
+- Zustand
+
+Data:
+- Supabase optional
+- local sample data fallback
+- local Swiggy import JSON/CSV storage
+
+External integrations:
+- Swiggy Partner import through Playwright inside Electron
+- Optional Kitchen API bridge to hosted WhatsApp backend
+
+Other libraries:
+- Howler.js for alarm sound
+- Lucide React for icons
+- Recharts for charts
+- Day.js for dates
+
+Build:
+- electron-builder
+
+
+REPOSITORY STRUCTURE
+====================
+Expected important files:
+
+package.json
+package-lock.json
+.env
+.env.example
+vite.config.js
+tailwind.config.js
+postcss.config.js
+index.html
+Start Kitchen OS.vbs
+Start Kitchen OS.ps1
+Start Kitchen OS.bat
+Create Desktop Shortcut.ps1
+PRODUCT_REBUILD_SPEC.txt
+START_FROM_SCRATCH_PROMPT.txt
+
+electron/
+  main.js
+  preload.cjs
+  swiggyImporter.js
+
+src/
+  main.jsx
+  App.jsx
+  styles.css
+
+src/components/
+  BottomNav.jsx
+  EmptyState.jsx
+  InventoryBar.jsx
+  Modal.jsx
+  OrderCard.jsx
+  SwiggyImportPanel.jsx
+
+src/screens/
+  OrderQueue.jsx
+  CounterSales.jsx
+  CompletedSales.jsx
+  Inventory.jsx
+  ExpenseLog.jsx
+  CashLedger.jsx
+  DailySummary.jsx
+  MenuSetup.jsx
+  SettingsScreen.jsx
+
+src/store/
+  appStore.js
+  orderStore.js
+  inventoryStore.js
+  expenseStore.js
+  cashStore.js
+
+src/lib/
+  audio.js
+  business.js
+  format.js
+  kitchenApi.js
+  localPersist.js
+  sampleData.js
+  supabase.js
+  swiggyBridge.js
+  units.js
+
+supabase/
+  schema.sql
+
+scripts/
+  audit-dashboard-buttons.mjs
+  desktop-smoke-test.mjs
+  run-swiggy-import.mjs
+  smoke-dashboard.mjs
+
+
+INSTALL FROM SCRATCH
+====================
+1. Install prerequisites:
+   - Windows 10/11
+   - Node.js
+   - Git
+
+2. Clone:
+   git clone https://github.com/kandregulaashok-byte/ego-foods-direct-ordering-system.git
+
+3. Enter folder:
+   cd ego-foods-direct-ordering-system
+
+4. Use latest main:
+   git checkout main
+   git pull
+
+5. If needed, restore good layout:
+   git checkout local-desktop-good-layout-2026-07-10
+
+   Or from main use:
+   git reset --hard local-desktop-good-layout-2026-07-10
+
+   Only reset if you intentionally want to discard local changes.
+
+6. Install dependencies:
+   npm install
+
+7. Create env:
+   copy .env.example .env
+
+8. Fill optional env variables:
+   VITE_SUPABASE_URL=
+   VITE_SUPABASE_ANON_KEY=
+   VITE_KITCHEN_API_URL=
+   VITE_KITCHEN_API_TOKEN=
+
+9. Run local dev desktop:
+   npm run electron:dev
+
+10. Create desktop shortcut:
+   Run:
+   powershell -ExecutionPolicy Bypass -File "Create Desktop Shortcut.ps1"
+
+11. Launch:
+   Double-click "Kitchen OS - Ego Foods.lnk" on Desktop.
+
+
+PACKAGE SCRIPTS
+===============
+package.json scripts:
+
+npm run dev
+- starts Vite on 127.0.0.1
+
+npm run electron
+- starts Electron directly
+
+npm run electron:dev
+- starts Vite and Electron together using concurrently and wait-on
+
+npm run build
+- builds Vite frontend
+
+npm run dist
+- builds frontend and packages Windows app using electron-builder
+
+npm run lint
+- runs eslint
+
+
+DESKTOP SHORTCUT BEHAVIOR
+=========================
+Shortcut path:
+C:\Users\Kandr\Desktop\Kitchen OS - Ego Foods.lnk
+
+Shortcut target:
+C:\Windows\System32\wscript.exe
+
+Shortcut argument:
+"<project path>\Start Kitchen OS.vbs"
+
+Start Kitchen OS.vbs:
+- launches PowerShell hidden
+- runs Start Kitchen OS.ps1
+
+Start Kitchen OS.ps1:
+- finds existing Electron window titled Kitchen OS
+- focuses existing window
+- avoids duplicate launches
+- checks for existing Kitchen OS node/electron processes
+- installs node_modules if missing
+- starts npm run electron:dev
+
+Important: the desktop shortcut should not open Vercel. It should launch the local Electron app.
+
+
+CURRENT GOOD UI REQUIREMENTS
+============================
+The UI should match the good local layout:
+
+Overall:
+- desktop-first
+- full-height application
+- no cramped mobile layout
+- no Vercel web dashboard look
+- beige/off-white background
+- dark readable text
+- soft restaurant operations palette
+
+Left sidebar:
+- Ego Foods logo circle at top
+- nav items with icons
+- active nav item has pale orange background and orange right border
+- inactive items are visible without hover
+- NEW COUNTER SALE button at bottom
+
+Header:
+- MAIN KITCHEN label
+- status pills:
+  - Open Status
+  - WhatsApp Ready / WhatsApp Off
+  - Printer Active / Printer Issue
+- buttons:
+  - IMPORT SWIGGY
+  - WhatsApp ON/OFF
+  - Printer OK/Warn
+  - FAQ/help/notification icons
+
+Order screen:
+- tabs/counters:
+  - New
+  - Preparing
+  - Ready
+  - Picked Up
+  - Past Orders
+- title: Order Queue
+- text: Accept paid WhatsApp orders, track preparation, and finish pickup.
+- filters:
+  - All Payments
+  - Time Ascending
+- empty state with large warning/exclamation visual
+
+
+SCREENS
+=======
+1. Orders / OrderQueue
+   - view active orders
+   - accept paid WhatsApp orders
+   - update preparing/ready/completed
+   - show screenshot if available
+   - trigger alarm for paid new WhatsApp orders
+
+2. CounterSales
+   - add offline/counter bill
+   - select menu item
+   - quantity
+   - generate total
+   - should eventually print bill
+
+3. CompletedSales
+   - view completed sales
+   - filter by WhatsApp, Swiggy, both
+   - group by item
+   - show item quantity totals
+
+4. Inventory
+   - raw ingredient stock
+   - batch logs
+   - low-stock thresholds
+   - sold kg tracking
+
+5. SwiggyImportPanel
+   - configure Swiggy restaurant ID/login
+   - import now
+   - auto import every 15 min
+   - progress bar/status
+   - open export folder
+
+6. ExpenseLog
+   - market purchases
+   - other expenses
+   - totals
+
+7. CashLedger
+   - cash in hand
+   - WhatsApp + Swiggy + counter sales - expenses
+
+8. DailySummary
+   - sales
+   - expenses
+   - net profit
+   - weekly view/charts
+
+9. MenuSetup
+   - menu items
+   - recipes
+   - portion mapping
+   - Swiggy item mapping
+
+10. SettingsScreen
+   - WhatsApp token testing
+   - backend settings
+   - operational configuration
+
+
+ORDER LOGIC
+===========
+Order sources:
+- whatsapp
+- swiggy
+- counter
+- dinein
+
+Order statuses:
+- new
+- payment_pending
+- preparing
+- ready
+- completed
+- rejected
+
+Paid WhatsApp order:
+- status: new
+- payment_confirmed: true
+- payment_screenshot_url should be present if payment screenshot exists
+- owner must accept/reject
+
+Alarm:
+- orderStore tracks paid new WhatsApp orders
+- Howler alarm starts if there are paid new orders
+- alarm stops when no paid new orders remain
+
+Customer pickup OTP:
+- each WhatsApp order should have pickup_code/OTP
+- customer should be told to share OTP with pickup person
+- backend is responsible for WhatsApp message
+
+
+WHATSAPP BEHAVIOR EXPECTED
+==========================
+WhatsApp bot backend is separate from this desktop app.
+Desktop can connect to it through Kitchen API bridge.
+
+Expected WhatsApp flow:
+1. Customer sends hi/menu.
+2. Bot greets and asks name first time.
+3. Bot shows menu in button/list flow.
+4. Customer selects items/qty.
+5. Customer checks out.
+6. Bot asks for payment screenshot.
+7. Customer uploads screenshot.
+8. Order appears in desktop dashboard as paid new.
+9. Alarm rings until owner accepts/rejects.
+10. Owner accepts.
+11. Bot sends confirmation, pickup address, and OTP.
+12. Owner marks ready.
+13. Bot sends ready message.
+14. Completed order can trigger thank-you/review message.
+
+WhatsApp open/closed:
+- desktop WhatsApp ON/OFF button updates backend is_open
+- if closed, bot replies:
+  "Orders are currently not being taken. If we resume in some time, we will update you."
+- bot should not take order while closed
+- reopened customers can be notified later
+
+
+SWIGGY IMPORT REQUIREMENTS
+==========================
+Swiggy import is desktop-local through Electron and Playwright.
+
+Features:
+- save Swiggy credentials locally
+- use persistent browser profile
+- password login where possible
+- manual OTP/captcha if needed
+- Import Now button
+- auto import every 15 min
+- default import date is current day
+- incremental only
+- deduplicate by full Swiggy order ID
+- status/progress bar live during import
+- one CSV per order date
+- one item-count CSV per date
+
+CSV:
+orders_YYYY-MM-DD.csv
+columns:
+- scrapeSeenAtIso
+- fullOrderId
+- total
+- itemsDetail
+
+item_counts_YYYY-MM-DD.csv
+columns:
+- item
+- quantity
+- orders
+
+Local Swiggy storage:
+%APPDATA%\kitchen-os\swiggy-import
+
+
+MENU DATA
+=========
+Restaurant:
+EGO Foods / East Godavari Foods
+
+Address:
+Road No. 17, Alkapoor Township, Puppalaguda, Hyderabad - 500089
+
+Phones:
+9866630936
+9703930936
+
+UPI:
+7702449983@ybl
+
+Menu:
+
+Non-Veg Palavs:
+- Fry Piece Biryani / Palav Regular - 180
+- Fry Piece Biryani / Palav Large - 260
+- Chicken Joint Palav Large - 300
+- Chicken Sambar Rice Regular - 250
+- Chicken Sambar Rice Large - 350
+- Special Chicken Palav Regular - 250
+- Special Chicken Palav Large - 350
+- Chicken Mughlai Palav Regular - 250
+- Chicken Mughlai Palav Large - 350
+- Chicken Biryani Fried Rice Regular - 250
+- Chicken Biryani Fried Rice Large - 350
+- Ulavacharu Chicken Palav Regular - 250
+- Ulavacharu Chicken Palav Large - 350
+
+Veg Palavs:
+- Veg Palav Regular - 140
+- Veg Palav Large - 200
+- Special Veg Palav with Paneer Curry Regular - 180
+- Special Veg Palav with Paneer Curry Large - 260
+- Veg Palav with Mushroom Curry Regular - 180
+- Veg Palav with Mushroom Curry Large - 260
+
+Desserts:
+- Hot Gulab Jamun (3 Pieces) - 80
+- Hot Gulab Jamun with Vanilla Ice Cream - 120
+
+Portion mapping example:
+Fry Piece Biryani:
+- Half: 200g
+- Full: 400g
+- Swiggy SINGLE: 400g
+- Swiggy Large: 600g
+
+
+INVENTORY REQUIREMENTS
+======================
+Owner should be able to:
+- add ingredients
+- set stock unit
+- set current stock
+- set low-stock threshold
+- edit threshold any day
+- log cooked batch multiple times per day
+- define recipe ingredients per base quantity
+- map menu portion weight
+- auto-deduct sold kg from completed orders
+- get low-stock alarm
+- acknowledge low-stock alarm
+
+
+PAYMENT SCREENSHOT REQUIREMENTS
+===============================
+For WhatsApp orders:
+- customer uploads payment screenshot
+- screenshot should be visible to owner before accepting order
+- owner accepts only after seeing order + payment proof
+- later OCR can extract:
+  - amount
+  - paid-to UPI
+  - date/time
+  - transaction ID
+
+OCR should not block order creation.
+
+
+PRINTER REQUIREMENTS
+====================
+When order marked ready:
+- print customer bill
+- print kitchen copy
+- two different printers eventually
+- if print fails, still allow Ready
+- show warning; do not block customer notification
+
+
+TESTING CHECKLIST
+=================
+Launch:
+- shortcut opens app
+- shortcut does not open terminal
+- shortcut focuses existing app
+- repeated clicks do not create duplicate windows
+
+Layout:
+- left sidebar visible and readable
+- active nav item visible
+- header visible
+- status pills visible
+- order queue layout matches screenshot
+
+Orders:
+- paid WhatsApp order appears
+- payment screenshot visible
+- alarm starts
+- accept stops alarm
+- status updates
+- completed moves to history/sales
+
+Swiggy:
+- settings save
+- password save
+- test login
+- import now
+- progress bar works
+- CSV files generated
+- item counts generated
+- duplicate order not duplicated
+- imported orders appear in Sales tab
+
+Counter:
+- add item
+- update quantity
+- calculate total
+- generate/print bill
+
+Inventory:
+- log batch
+- block negative stock
+- update sold kg on completed order
+- low-stock warning accurate
+
+Cash/Summary:
+- totals match orders/expenses
+- Indian currency formatting
+
+
+CRITICAL WARNINGS FOR FUTURE DEVELOPERS
+=======================================
+1. Do not replace the desktop shortcut with Vercel URL.
+2. Do not deploy this Electron repo to Vercel.
+3. Do not redesign the dashboard without preserving the good local layout.
+4. Keep WhatsApp backend separate from desktop repo.
+5. Keep GitHub main as the desktop app source.
+6. Use backup branch/tag before risky work.
+7. Test shortcut after any launcher change.
+
+
+NEXT BEST CLEANUP
+=================
+1. Create a separate repo for WhatsApp backend:
+   ego-foods-whatsapp-backend
+
+2. Disconnect current Vercel project from this desktop repo.
+
+3. Keep this repo for:
+   Kitchen OS Electron Desktop App
+
+4. Make packaged Windows installer:
+   npm run dist
+
+5. Create QA script for:
+   - launch
+   - Swiggy import
+   - WhatsApp bridge
+   - order accept
+   - counter sale
+
+
+END OF PROMPT
