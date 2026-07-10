@@ -4,6 +4,7 @@ import { hasKitchenApi, updateKitchenOrderStatus } from '../lib/kitchenApi';
 import { sampleOrders } from '../lib/sampleData';
 import { activeToday, completedToday, orderPortionKg } from '../lib/business';
 import { startAlarm, stopAlarm } from '../lib/audio';
+import { useAppStore } from './appStore';
 
 function isPaidNew(order) {
   return order?.payment_confirmed && (order.status === 'new' || order.status === 'payment_pending');
@@ -11,7 +12,8 @@ function isPaidNew(order) {
 
 function printCustomerReceipt(order) {
   if (order?.source !== 'whatsapp' || !window.kitchenOS?.printer?.printCustomerReceipt) return;
-  window.kitchenOS.printer.printCustomerReceipt(order).catch((error) => {
+  const printerName = useAppStore.getState().customerPrinterName;
+  window.kitchenOS.printer.printCustomerReceipt(order, printerName).catch((error) => {
     console.error('Customer receipt print failed:', error);
   });
 }

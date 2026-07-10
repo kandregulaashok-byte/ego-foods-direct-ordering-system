@@ -11,7 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let mainWindow;
 const swiggyImporter = new SwiggyImporter();
 let swiggyAutoTimer = null;
-const customerPrinterName = 'POS-58-Series';
+const defaultCustomerPrinterName = 'POS-58-Series';
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 
@@ -103,16 +103,17 @@ function receiptHtml(order) {
 
 function registerPrinterIpc() {
   ipcMain.handle('printer:list', async () => mainWindow?.webContents.getPrintersAsync() || []);
-  ipcMain.handle('printer:print-customer-receipt', async (_event, order) => {
+  ipcMain.handle('printer:print-customer-receipt', async (_event, order, printerName) => {
+    const deviceName = printerName || defaultCustomerPrinterName;
     const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(receiptHtml(order || {}))}`);
     await new Promise((resolve, reject) => {
-      printWindow.webContents.print({ silent: true, printBackground: true, deviceName: customerPrinterName }, (success, failureReason) => {
+      printWindow.webContents.print({ silent: true, printBackground: true, deviceName }, (success, failureReason) => {
         printWindow.close();
         success ? resolve() : reject(new Error(failureReason || 'Receipt print failed.'));
       });
     });
-    return { ok: true, printer: customerPrinterName };
+    return { ok: true, printer: deviceName };
   });
 }
 

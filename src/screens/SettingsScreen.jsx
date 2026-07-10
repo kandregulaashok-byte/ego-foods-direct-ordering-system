@@ -10,8 +10,11 @@ export default function SettingsScreen() {
   const setWhatsappOpen = useAppStore((state) => state.setWhatsappOpen);
   const printerOnline = useAppStore((state) => state.printerOnline);
   const setPrinterOnline = useAppStore((state) => state.setPrinterOnline);
+  const customerPrinterName = useAppStore((state) => state.customerPrinterName);
+  const setCustomerPrinterName = useAppStore((state) => state.setCustomerPrinterName);
   const [whatsappToken, setWhatsappToken] = useState('');
   const [tokenSaved, setTokenSaved] = useState(false);
+  const [printers, setPrinters] = useState([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -19,6 +22,12 @@ export default function SettingsScreen() {
     fetchKitchenSettings()
       .then((settings) => setTokenSaved(Boolean(settings.whatsapp_token_set)))
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    window.kitchenOS?.printer?.list?.()
+      .then((rows) => setPrinters(rows || []))
+      .catch(() => setPrinters([]));
   }, []);
 
   async function toggleWhatsappOpen() {
@@ -60,6 +69,16 @@ export default function SettingsScreen() {
         </Panel>
         <Panel icon={Printer} title="Printer Status">
           <p className="text-[14px] font-semibold text-text-muted">Ready actions should not be blocked by printer issues. This flag controls the dashboard warning.</p>
+          <label className="mt-4 block text-[12px] font-black uppercase text-text-muted">Customer copy printer</label>
+          <select
+            value={customerPrinterName}
+            onChange={(event) => setCustomerPrinterName(event.target.value)}
+            className="mt-2 h-11 w-full rounded-sm border border-[#eadfd7] bg-white px-3 text-[14px] font-bold text-text-dark"
+          >
+            {printers.length ? printers.map((printer) => (
+              <option key={printer.name} value={printer.name}>{printer.name}</option>
+            )) : <option value={customerPrinterName}>{customerPrinterName}</option>}
+          </select>
           <button type="button" onClick={() => setPrinterOnline(!printerOnline)} className={`mt-4 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[13px] font-black text-white ${printerOnline ? 'bg-success' : 'bg-danger'}`}>
             <Printer size={18} /> Printer {printerOnline ? 'OK' : 'ISSUE'}
           </button>
