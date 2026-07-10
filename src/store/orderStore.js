@@ -88,9 +88,10 @@ export const useOrderStore = create((set, get) => ({
     if (status === 'preparing' && !extra.payment_confirmed && !previous.payment_confirmed) {
       return { ok: false, message: 'Confirm the payment before preparing this order.' };
     }
-    const next = { ...previous, ...extra, status, updated_at: new Date().toISOString() };
+    const finalExtra = status === 'completed' ? { ...extra, payment_screenshot_url: '' } : extra;
+    const next = { ...previous, ...finalExtra, status, updated_at: new Date().toISOString() };
     if (hasKitchenApi && previous.source === 'whatsapp') {
-      const saved = await updateKitchenOrderStatus(orderId, status, extra);
+      const saved = await updateKitchenOrderStatus(orderId, status, finalExtra);
       get().upsertOrder(saved);
       if (status === 'preparing') printOrderCopies(saved);
       return { ok: true, previous, next: saved };

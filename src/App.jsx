@@ -16,7 +16,7 @@ import {
   Wifi
 } from 'lucide-react';
 import { startAlarm } from './lib/audio';
-import { applyExternalMappingsToOrders, orderPortionKg } from './lib/business';
+import { applyExternalMappingsToOrders, orderPortionKgByMenu } from './lib/business';
 import { fetchKitchenOrders, fetchKitchenSettings, hasKitchenApi, updateKitchenSettings } from './lib/kitchenApi';
 import { importSwiggyNow, onSwiggyProgress } from './lib/swiggyBridge';
 import { subscribeToOrders, supabase } from './lib/supabase';
@@ -200,9 +200,8 @@ export default function App() {
         upsertOrder(order);
         if (order.status === 'completed' && oldOrder?.status !== 'completed') {
           const { menuItems } = useInventoryStore.getState();
-          const kg = orderPortionKg(order, menuItems);
-          const firstItem = order.items?.[0];
-          if (firstItem) addSoldKg(firstItem.menu_item_id, kg);
+          const soldByMenu = orderPortionKgByMenu(order, menuItems);
+          Object.entries(soldByMenu).forEach(([menuItemId, kg]) => addSoldKg(menuItemId, kg));
         }
       }
     });

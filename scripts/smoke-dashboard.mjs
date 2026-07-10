@@ -20,10 +20,6 @@ async function clickButtonText(name, text, waitFor) {
   await clickAndMeasure(name, page.getByRole('button', { name: text, exact: true }), waitFor);
 }
 
-async function clickButtonLike(name, text, waitFor) {
-  await clickAndMeasure(name, page.getByRole('button', { name: new RegExp(text, 'i') }), waitFor);
-}
-
 async function clickNav(name, text, waitFor) {
   await clickAndMeasure(name, page.locator('aside').getByRole('button', { name: new RegExp(text, 'i') }), waitFor);
 }

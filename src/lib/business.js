@@ -30,11 +30,23 @@ export function completedToday(order) {
 }
 
 export function orderPortionKg(order, menuItems) {
-  return (order.items || []).reduce((sum, item) => {
+  return (order.items || []).reduce((sum, item) => sum + orderItemPortionKg(item, menuItems), 0);
+}
+
+export function orderItemPortionKg(item, menuItems) {
+  const menuItem = menuItems.find((menu) => menu.id === item.menu_item_id || menu.name === item.name);
+  const grams = item.portion_grams || (item.variant === 'half' ? menuItem?.portion_half_grams : menuItem?.portion_full_grams);
+  return (Number(grams || 0) / 1000) * Number(item.qty || item.quantity || 1);
+}
+
+export function orderPortionKgByMenu(order, menuItems) {
+  return (order.items || []).reduce((totals, item) => {
     const menuItem = menuItems.find((menu) => menu.id === item.menu_item_id || menu.name === item.name);
-    const grams = item.portion_grams || (item.variant === 'half' ? menuItem?.portion_half_grams : menuItem?.portion_full_grams);
-    return sum + ((Number(grams || 0) / 1000) * Number(item.qty || 1));
-  }, 0);
+    const menuId = menuItem?.id || item.menu_item_id;
+    if (!menuId) return totals;
+    totals[menuId] = (totals[menuId] || 0) + orderItemPortionKg(item, menuItems);
+    return totals;
+  }, {});
 }
 
 export function applyExternalMappingsToOrders(orders, { externalMappings = [], portions = [], menuItems = [] }) {

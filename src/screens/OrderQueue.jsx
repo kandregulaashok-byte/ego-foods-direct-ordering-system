@@ -1,7 +1,7 @@
 import { AlertTriangle, Filter, TimerReset } from 'lucide-react';
 import { useRef, useState } from 'react';
 import OrderCard from '../components/OrderCard';
-import { activeToday, completedToday, sortOrders } from '../lib/business';
+import { activeToday, completedToday, orderItemPortionKg, sortOrders } from '../lib/business';
 import { useInventoryStore } from '../store/inventoryStore';
 import { useOrderStore } from '../store/orderStore';
 
@@ -74,8 +74,7 @@ export default function OrderQueue() {
   async function handleCompleted(order) {
     for (const item of order.items || []) {
       const menuItem = menuItems.find((menu) => menu.id === item.menu_item_id || menu.name === item.name);
-      const grams = item.variant === 'half' ? menuItem?.portion_half_grams : menuItem?.portion_full_grams;
-      await addSoldKg(menuItem?.id || item.menu_item_id, (Number(grams || 0) / 1000) * Number(item.qty || 1));
+      await addSoldKg(menuItem?.id || item.menu_item_id, orderItemPortionKg(item, menuItems));
     }
   }
 
