@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { hasKitchenApi, updateKitchenOrderStatus } from '../lib/kitchenApi';
 import { sampleOrders } from '../lib/sampleData';
-import { activeToday, completedToday, orderPortionKg } from '../lib/business';
+import { activeToday, completedToday, generatePickupCode, orderPortionKg } from '../lib/business';
+import { uid } from '../lib/format';
 import { startAlarm, stopAlarm } from '../lib/audio';
 import { useAppStore } from './appStore';
 
@@ -51,6 +52,25 @@ export const useOrderStore = create((set, get) => ({
         ? state.orders.map((item) => (item.id === order.id ? order : item))
         : [order, ...state.orders]
     })),
+  addCounterOrder: ({ items, total, mode }) =>
+    set((state) => {
+      const now = new Date().toISOString();
+      const order = {
+        id: uid('counter'),
+        customer_name: mode || 'Counter Customer',
+        customer_phone: '',
+        items,
+        total_amount: Number(total || 0),
+        status: 'completed',
+        payment_confirmed: true,
+        payment_screenshot_url: '',
+        pickup_code: generatePickupCode(state.orders),
+        source: 'counter',
+        created_at: now,
+        updated_at: now
+      };
+      return { orders: [order, ...state.orders] };
+    }),
   markScreenshotViewed: (orderId) =>
     set((state) => ({ viewedScreenshots: { ...state.viewedScreenshots, [orderId]: true } })),
   dismissAlarmForOrder: (orderId) => {

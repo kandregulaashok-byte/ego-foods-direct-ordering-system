@@ -3,11 +3,13 @@ import { useMemo, useState } from 'react';
 import { formatINR } from '../lib/format';
 import { useCashStore } from '../store/cashStore';
 import { useInventoryStore } from '../store/inventoryStore';
+import { useOrderStore } from '../store/orderStore';
 
 export default function CounterSales() {
   const menuItems = useInventoryStore((state) => state.menuItems);
   const portions = useInventoryStore((state) => state.portions);
   const addDineInSale = useCashStore((state) => state.addDineInSale);
+  const addCounterOrder = useOrderStore((state) => state.addCounterOrder);
   const [cart, setCart] = useState({});
   const [mode, setMode] = useState('Takeaway');
   const [message, setMessage] = useState('');
@@ -27,15 +29,27 @@ export default function CounterSales() {
   async function saveAndPrint() {
     if (loading || !total) return;
     setLoading(true);
-    const note = saleItems
+    const selectedItems = saleItems
       .filter((item) => Number(cart[item.id] || 0) > 0)
-      .map((item) => `${item.menuName} ${item.name} x${cart[item.id]}`)
+      .map((item) => ({
+        menu_item_id: item.menu_item_id,
+        portion_id: item.id,
+        name: `${item.menuName} - ${item.name}`,
+        variant: item.name,
+        qty: Number(cart[item.id] || 0),
+        quantity: Number(cart[item.id] || 0),
+        price: Number(item.price || 0),
+        portion_grams: Number(item.grams || 0)
+      }));
+    const note = selectedItems
+      .map((item) => `${item.name} x${item.qty}`)
       .join(', ');
     const result = await addDineInSale({ amount: total, note: `${mode}: ${note}` });
     setLoading(false);
     if (result.ok) {
+      addCounterOrder({ items: selectedItems, total, mode });
       setCart({});
-      setMessage('Counter sale saved. Print command queued.');
+      setMessage('Counter sale saved and added to sales.');
     } else {
       setMessage(result.message || 'Could not save counter sale.');
     }
