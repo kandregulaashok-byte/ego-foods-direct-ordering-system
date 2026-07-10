@@ -13,5 +13,9 @@ contextBridge.exposeInMainWorld('kitchenOS', {
       ipcRenderer.on('swiggy:progress', listener);
       return () => ipcRenderer.removeListener('swiggy:progress', listener);
     }
+  },
+  printer: {
+    list: () => ipcRenderer.invoke('printer:list'),
+    printCustomerReceipt: (order) => ipcRenderer.invoke('printer:print-customer-receipt', order)
   }
 });

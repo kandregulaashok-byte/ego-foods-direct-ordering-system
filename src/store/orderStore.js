@@ -9,6 +9,13 @@ function isPaidNew(order) {
   return order?.payment_confirmed && (order.status === 'new' || order.status === 'payment_pending');
 }
 
+function printCustomerReceipt(order) {
+  if (order?.source !== 'whatsapp' || !window.kitchenOS?.printer?.printCustomerReceipt) return;
+  window.kitchenOS.printer.printCustomerReceipt(order).catch((error) => {
+    console.error('Customer receipt print failed:', error);
+  });
+}
+
 export const useOrderStore = create((set, get) => ({
   orders: sampleOrders,
   viewedScreenshots: {},
@@ -63,6 +70,7 @@ export const useOrderStore = create((set, get) => ({
     if (hasKitchenApi && previous.source === 'whatsapp') {
       const saved = await updateKitchenOrderStatus(orderId, status, extra);
       get().upsertOrder(saved);
+      if (status === 'preparing') printCustomerReceipt(saved);
       return { ok: true, previous, next: saved };
     }
     if (supabase) {
@@ -70,6 +78,7 @@ export const useOrderStore = create((set, get) => ({
       if (error) return { ok: false, message: error.message };
     }
     get().upsertOrder(next);
+    if (status === 'preparing') printCustomerReceipt(next);
     return { ok: true, previous, next };
   },
   activeCount: () => get().orders.filter(activeToday).length,
