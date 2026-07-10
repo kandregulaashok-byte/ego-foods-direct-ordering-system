@@ -42,10 +42,17 @@ export const useOrderStore = create((set, get) => ({
       return { orders: Array.from(byId.values()) };
     }),
   addOrder: (order) =>
-    set((state) => ({
-      orders: [order, ...state.orders.filter((item) => item.id !== order.id)],
-      alarmOrderIds: new Set([...state.alarmOrderIds, order.id])
-    })),
+    set((state) => {
+      const alarmOrderIds = new Set(state.alarmOrderIds);
+      if (isPaidNew(order)) {
+        alarmOrderIds.add(order.id);
+        startAlarm();
+      }
+      return {
+        orders: [order, ...state.orders.filter((item) => item.id !== order.id)],
+        alarmOrderIds
+      };
+    }),
   upsertOrder: (order) =>
     set((state) => ({
       orders: state.orders.some((item) => item.id === order.id)

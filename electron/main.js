@@ -19,6 +19,8 @@ if (!gotSingleInstanceLock) {
   app.quit();
 }
 
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 app.on('second-instance', () => {
   if (!mainWindow) return;
   if (mainWindow.isMinimized()) mainWindow.restore();
