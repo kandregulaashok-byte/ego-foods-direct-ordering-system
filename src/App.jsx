@@ -36,6 +36,8 @@ import OrderQueue from './screens/OrderQueue';
 import SwiggyImportPanel from './components/SwiggyImportPanel';
 import CounterSales from './screens/CounterSales';
 import SettingsScreen from './screens/SettingsScreen';
+import LicenseGate from './components/LicenseGate';
+import { licenseStatus, unlockLicense } from './lib/license';
 
 const screens = {
   orders: OrderQueue,
@@ -94,6 +96,8 @@ export default function App() {
   const [swiggyImporting, setSwiggyImporting] = useState(false);
   const [swiggyProgress, setSwiggyProgress] = useState(null);
   const [notice, setNotice] = useState('');
+  const [license, setLicense] = useState(() => licenseStatus());
+  const [remoteLicense, setRemoteLicense] = useState({ active: true, message: '' });
   const kitchenSynced = useRef(false);
   const Screen = screens[tab] || MenuSetup;
 
@@ -157,7 +161,10 @@ export default function App() {
       }
       if (hasKitchenApi) {
         await fetchKitchenSettings()
-          .then((settings) => setWhatsappOpen(Boolean(settings.is_open)))
+          .then((settings) => {
+            setWhatsappOpen(Boolean(settings.is_open));
+            setRemoteLicense(settings.license || { active: true, message: '' });
+          })
           .catch(() => {});
       }
       await loadKitchenOrders().catch(() => setNotice('WhatsApp order sync is not reachable.'));
@@ -217,6 +224,20 @@ export default function App() {
     const timeout = setTimeout(() => setNotice(''), 4500);
     return () => clearTimeout(timeout);
   }, [notice]);
+
+  if (!license.ok || remoteLicense.active === false) {
+    return (
+      <LicenseGate
+        status={license}
+        remoteLicense={remoteLicense}
+        onUnlock={(password) => {
+          const result = unlockLicense(password);
+          if (result.ok) setLicense(result.status);
+          return result;
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen min-h-[680px] w-screen overflow-hidden bg-bg-secondary text-text-dark" data-app-scroll>
