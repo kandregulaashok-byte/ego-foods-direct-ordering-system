@@ -77,27 +77,42 @@ function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 }
 
+function receiptCss(fontSize = 11) {
+  return `
+    @page{size:58mm auto;margin:0}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:#fff;color:#000}
+    body{width:48mm;padding:2mm;font-family:Arial,'Courier New',sans-serif;font-size:${fontSize}px;line-height:1.25;overflow:visible}
+    h1{font-size:15px;margin:0 0 2mm;text-align:center;letter-spacing:.4px}
+    .center{text-align:center}.right{text-align:right}.bold{font-weight:700}
+    .line{border-top:1px dashed #000;margin:2mm 0}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    td{padding:1.5mm 0;vertical-align:top;word-break:break-word}
+    td.item{width:32mm;padding-right:1mm}
+    td.amount{width:12mm;text-align:right;white-space:nowrap}
+    .total{border-top:1px solid #000;border-bottom:1px solid #000;margin:2mm 0;padding:1.5mm 0;font-size:14px;font-weight:800}
+    .otp{font-size:22px;font-weight:900;text-align:center;border:1px solid #000;margin:1.5mm 0;padding:1.5mm}
+  `;
+}
+
 function customerReceiptHtml(order) {
   const items = (order.items || []).map((item) => {
     const qty = Number(item.qty || item.quantity || 1);
     const price = Number(item.price || 0);
-    return `<tr><td>${escapeHtml(item.name)} ${escapeHtml(item.variant || '')}<br/>x ${qty}</td><td class="right">${money(price * qty)}</td></tr>`;
+    return `<tr><td class="item">${escapeHtml(item.name)} ${escapeHtml(item.variant || '')}<br/>x ${qty}</td><td class="amount">${money(price * qty)}</td></tr>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"/><style>
-    body{font-family:Arial,sans-serif;width:220px;margin:0;padding:8px;color:#000;font-size:12px}
-    h1{font-size:16px;margin:0 0 4px;text-align:center} .center{text-align:center}.right{text-align:right}
-    table{width:100%;border-collapse:collapse;margin-top:8px}td{border-top:1px dashed #000;padding:5px 0;vertical-align:top}
-    .total{font-size:15px;font-weight:700;border-top:1px solid #000;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between}
-    .otp{font-size:22px;font-weight:800;text-align:center;border:1px solid #000;margin:8px 0;padding:6px}
+    ${receiptCss(11)}
   </style></head><body>
     <h1>EGO FOODS</h1>
     <div class="center">Customer Copy</div>
     <div>Order: ${escapeHtml(order.pickup_code || order.id || '')}</div>
     <div>Name: ${escapeHtml(order.customer_name || 'Customer')}</div>
     <div>Phone: ${escapeHtml(order.customer_phone || '')}</div>
+    <div class="line"></div>
     <table>${items}</table>
-    <div class="total"><span>Total</span><span>${money(order.total_amount || order.total || 0)}</span></div>
-    <div>Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
+    <div class="total">Total: ${money(order.total_amount || order.total || 0)}</div>
+    <div class="bold">Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
     <div class="center">Share this OTP with the pickup person.</div>
     <div class="center">Thanks and enjoy the food.</div>
   </body></html>`;
@@ -106,26 +121,24 @@ function customerReceiptHtml(order) {
 function kitchenReceiptHtml(order) {
   const items = (order.items || []).map((item) => {
     const qty = Number(item.qty || item.quantity || 1);
-    return `<tr><td>${escapeHtml(item.name)} ${escapeHtml(item.variant || '')}</td><td class="right">x ${qty}</td></tr>`;
+    return `<tr><td class="item">${escapeHtml(item.name)} ${escapeHtml(item.variant || '')}</td><td class="amount">x ${qty}</td></tr>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"/><style>
-    body{font-family:Arial,sans-serif;width:220px;margin:0;padding:8px;color:#000;font-size:13px}
-    h1{font-size:17px;margin:0 0 4px;text-align:center}.center{text-align:center}.right{text-align:right}
-    table{width:100%;border-collapse:collapse;margin-top:8px}td{border-top:1px dashed #000;padding:7px 0;vertical-align:top}
-    .otp{font-size:24px;font-weight:800;text-align:center;border:1px solid #000;margin:8px 0;padding:6px}
+    ${receiptCss(12)}
   </style></head><body>
     <h1>KITCHEN COPY</h1>
     <div>Order: ${escapeHtml(order.pickup_code || order.id || '')}</div>
-    <div>Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
+    <div class="bold">Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
+    <div class="line"></div>
     <table>${items}</table>
   </body></html>`;
 }
 
 async function printHtml(html, deviceName) {
-  const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+  const printWindow = new BrowserWindow({ show: false, width: 280, height: 900, webPreferences: { sandbox: true } });
   await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
   await new Promise((resolve, reject) => {
-    printWindow.webContents.print({ silent: true, printBackground: true, deviceName }, (success, failureReason) => {
+    printWindow.webContents.print({ silent: true, printBackground: true, margins: { marginType: 'none' }, deviceName }, (success, failureReason) => {
       printWindow.close();
       success ? resolve() : reject(new Error(failureReason || 'Receipt print failed.'));
     });
