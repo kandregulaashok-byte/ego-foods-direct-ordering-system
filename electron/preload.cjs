@@ -16,6 +16,6 @@ contextBridge.exposeInMainWorld('kitchenOS', {
   },
   printer: {
     list: () => ipcRenderer.invoke('printer:list'),
-    printCustomerReceipt: (order, printerName) => ipcRenderer.invoke('printer:print-customer-receipt', order, printerName)
+    printOrderCopies: (order, printers) => ipcRenderer.invoke('printer:print-order-copies', order, printers)
   }
 });

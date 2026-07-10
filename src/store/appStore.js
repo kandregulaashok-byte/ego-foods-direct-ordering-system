@@ -12,8 +12,15 @@ export const useAppStore = create((set) => ({
   setPrinterOnline: (printerOnline) => set({ printerOnline }),
   customerPrinterName: printerSettings.customerPrinterName || 'POS-58-Series',
   setCustomerPrinterName: (customerPrinterName) => {
-    writeLocal('kitchen-printer-settings', { customerPrinterName });
+    const kitchenPrinterName = useAppStore.getState().kitchenPrinterName;
+    writeLocal('kitchen-printer-settings', { customerPrinterName, kitchenPrinterName });
     set({ customerPrinterName });
+  },
+  kitchenPrinterName: printerSettings.kitchenPrinterName || printerSettings.customerPrinterName || 'POS-58-Series',
+  setKitchenPrinterName: (kitchenPrinterName) => {
+    const customerPrinterName = useAppStore.getState().customerPrinterName;
+    writeLocal('kitchen-printer-settings', { customerPrinterName, kitchenPrinterName });
+    set({ kitchenPrinterName });
   },
   expenseMode: null,
   openExpenseMode: (expenseMode) => set({ tab: 'expenses', expenseMode }),

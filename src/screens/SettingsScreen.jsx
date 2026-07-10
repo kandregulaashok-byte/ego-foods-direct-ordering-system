@@ -12,6 +12,8 @@ export default function SettingsScreen() {
   const setPrinterOnline = useAppStore((state) => state.setPrinterOnline);
   const customerPrinterName = useAppStore((state) => state.customerPrinterName);
   const setCustomerPrinterName = useAppStore((state) => state.setCustomerPrinterName);
+  const kitchenPrinterName = useAppStore((state) => state.kitchenPrinterName);
+  const setKitchenPrinterName = useAppStore((state) => state.setKitchenPrinterName);
   const [whatsappToken, setWhatsappToken] = useState('');
   const [tokenSaved, setTokenSaved] = useState(false);
   const [printers, setPrinters] = useState([]);
@@ -79,6 +81,17 @@ export default function SettingsScreen() {
               <option key={printer.name} value={printer.name}>{printer.name}</option>
             )) : <option value={customerPrinterName}>{customerPrinterName}</option>}
           </select>
+          <label className="mt-4 block text-[12px] font-black uppercase text-text-muted">Kitchen copy printer</label>
+          <select
+            value={kitchenPrinterName}
+            onChange={(event) => setKitchenPrinterName(event.target.value)}
+            className="mt-2 h-11 w-full rounded-sm border border-[#eadfd7] bg-white px-3 text-[14px] font-bold text-text-dark"
+          >
+            {printers.length ? printers.map((printer) => (
+              <option key={printer.name} value={printer.name}>{printer.name}</option>
+            )) : <option value={kitchenPrinterName}>{kitchenPrinterName}</option>}
+          </select>
+          <p className="mt-2 text-[12px] font-semibold text-text-muted">If both dropdowns use the same printer, both copies print on that printer.</p>
           <button type="button" onClick={() => setPrinterOnline(!printerOnline)} className={`mt-4 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[13px] font-black text-white ${printerOnline ? 'bg-success' : 'bg-danger'}`}>
             <Printer size={18} /> Printer {printerOnline ? 'OK' : 'ISSUE'}
           </button>

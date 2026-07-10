@@ -10,11 +10,11 @@ function isPaidNew(order) {
   return order?.payment_confirmed && (order.status === 'new' || order.status === 'payment_pending');
 }
 
-function printCustomerReceipt(order) {
-  if (order?.source !== 'whatsapp' || !window.kitchenOS?.printer?.printCustomerReceipt) return;
-  const printerName = useAppStore.getState().customerPrinterName;
-  window.kitchenOS.printer.printCustomerReceipt(order, printerName).catch((error) => {
-    console.error('Customer receipt print failed:', error);
+function printOrderCopies(order) {
+  if (order?.source !== 'whatsapp' || !window.kitchenOS?.printer?.printOrderCopies) return;
+  const { customerPrinterName, kitchenPrinterName } = useAppStore.getState();
+  window.kitchenOS.printer.printOrderCopies(order, { customerPrinterName, kitchenPrinterName }).catch((error) => {
+    console.error('Order receipt print failed:', error);
   });
 }
 
@@ -72,7 +72,7 @@ export const useOrderStore = create((set, get) => ({
     if (hasKitchenApi && previous.source === 'whatsapp') {
       const saved = await updateKitchenOrderStatus(orderId, status, extra);
       get().upsertOrder(saved);
-      if (status === 'preparing') printCustomerReceipt(saved);
+      if (status === 'preparing') printOrderCopies(saved);
       return { ok: true, previous, next: saved };
     }
     if (supabase) {
@@ -80,7 +80,7 @@ export const useOrderStore = create((set, get) => ({
       if (error) return { ok: false, message: error.message };
     }
     get().upsertOrder(next);
-    if (status === 'preparing') printCustomerReceipt(next);
+    if (status === 'preparing') printOrderCopies(next);
     return { ok: true, previous, next };
   },
   activeCount: () => get().orders.filter(activeToday).length,

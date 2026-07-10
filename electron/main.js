@@ -75,7 +75,7 @@ function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 }
 
-function receiptHtml(order) {
+function customerReceiptHtml(order) {
   const items = (order.items || []).map((item) => {
     const qty = Number(item.qty || item.quantity || 1);
     const price = Number(item.price || 0);
@@ -97,23 +97,47 @@ function receiptHtml(order) {
     <div class="total"><span>Total</span><span>${money(order.total_amount || order.total || 0)}</span></div>
     <div>Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
     <div class="center">Share this OTP with the pickup person.</div>
-    <div class="center">Thank you</div>
+    <div class="center">Thanks and enjoy the food.</div>
   </body></html>`;
+}
+
+function kitchenReceiptHtml(order) {
+  const items = (order.items || []).map((item) => {
+    const qty = Number(item.qty || item.quantity || 1);
+    return `<tr><td>${escapeHtml(item.name)} ${escapeHtml(item.variant || '')}</td><td class="right">x ${qty}</td></tr>`;
+  }).join('');
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>
+    body{font-family:Arial,sans-serif;width:220px;margin:0;padding:8px;color:#000;font-size:13px}
+    h1{font-size:17px;margin:0 0 4px;text-align:center}.center{text-align:center}.right{text-align:right}
+    table{width:100%;border-collapse:collapse;margin-top:8px}td{border-top:1px dashed #000;padding:7px 0;vertical-align:top}
+    .otp{font-size:24px;font-weight:800;text-align:center;border:1px solid #000;margin:8px 0;padding:6px}
+  </style></head><body>
+    <h1>KITCHEN COPY</h1>
+    <div>Order: ${escapeHtml(order.pickup_code || order.id || '')}</div>
+    <div>Pickup OTP</div><div class="otp">${escapeHtml(order.pickup_code || '')}</div>
+    <table>${items}</table>
+  </body></html>`;
+}
+
+async function printHtml(html, deviceName) {
+  const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+  await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  await new Promise((resolve, reject) => {
+    printWindow.webContents.print({ silent: true, printBackground: true, deviceName }, (success, failureReason) => {
+      printWindow.close();
+      success ? resolve() : reject(new Error(failureReason || 'Receipt print failed.'));
+    });
+  });
 }
 
 function registerPrinterIpc() {
   ipcMain.handle('printer:list', async () => mainWindow?.webContents.getPrintersAsync() || []);
-  ipcMain.handle('printer:print-customer-receipt', async (_event, order, printerName) => {
-    const deviceName = printerName || defaultCustomerPrinterName;
-    const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
-    await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(receiptHtml(order || {}))}`);
-    await new Promise((resolve, reject) => {
-      printWindow.webContents.print({ silent: true, printBackground: true, deviceName }, (success, failureReason) => {
-        printWindow.close();
-        success ? resolve() : reject(new Error(failureReason || 'Receipt print failed.'));
-      });
-    });
-    return { ok: true, printer: deviceName };
+  ipcMain.handle('printer:print-order-copies', async (_event, order, printers = {}) => {
+    const customerPrinter = printers.customerPrinterName || defaultCustomerPrinterName;
+    const kitchenPrinter = printers.kitchenPrinterName || customerPrinter;
+    await printHtml(customerReceiptHtml(order || {}), customerPrinter);
+    await printHtml(kitchenReceiptHtml(order || {}), kitchenPrinter);
+    return { ok: true, customerPrinter, kitchenPrinter };
   });
 }
 
