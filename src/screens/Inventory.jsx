@@ -22,11 +22,12 @@ export default function Inventory() {
   const batchLogs = useInventoryStore((state) => state.batchLogs);
   const logBatch = useInventoryStore((state) => state.logBatch);
   const openExpenseMode = useAppStore((state) => state.openExpenseMode);
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState(menuItems[0]?.id || '');
   const [batchOpen, setBatchOpen] = useState(false);
   const [kgCooked, setKgCooked] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const menuItem = menuItems[0];
+  const menuItem = menuItems.find((item) => item.id === selectedMenuItemId) || menuItems[0];
   const todayBatches = batchLogs.filter((batch) => batch.date === todayISO() && batch.menu_item_id === menuItem?.id);
   const cooked = todayBatches.reduce((sum, batch) => sum + Number(batch.kg_cooked || 0), 0);
   const sold = todayBatches.reduce((sum, batch) => sum + Number(batch.kg_sold || 0), 0);
@@ -65,6 +66,12 @@ export default function Inventory() {
       </header>
 
       <h2 className="mb-2 text-[14px] font-black text-text-muted">BIRYANI BATCH</h2>
+      <label className="mb-3 block text-[13px] font-black uppercase text-text-muted">
+        Cooked item
+        <select value={menuItem?.id || ''} onChange={(event) => setSelectedMenuItemId(event.target.value)} className="mt-2 h-12 w-full rounded-sm border border-[#eadfd7] bg-white px-3 text-base font-bold text-text-dark">
+          {menuItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        </select>
+      </label>
       {cooked === 0 ? (
         <EmptyState>No batch logged yet today. Tap "Log Today's Batch" when you start cooking.</EmptyState>
       ) : (
@@ -144,7 +151,7 @@ export default function Inventory() {
               value={kgCooked}
               onChange={(event) => setKgCooked(event.target.value)}
               className="mt-2 h-12 w-full rounded-sm border border-border px-3 text-base font-bold outline-primary"
-              placeholder="Fry Piece Biryani kg"
+              placeholder={`${menuItem?.name || 'Item'} kg`}
             />
           </label>
           <div className="mt-4 rounded-sm bg-[#fff6ef] p-3">

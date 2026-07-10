@@ -16,21 +16,25 @@ export default function MenuSetup() {
   const ingredients = useInventoryStore((state) => state.ingredients);
   const recipes = useInventoryStore((state) => state.recipes);
   const externalMappings = useInventoryStore((state) => state.externalMappings);
+  const addMenuItem = useInventoryStore((state) => state.addMenuItem);
   const updateMenuItem = useInventoryStore((state) => state.updateMenuItem);
   const updatePortions = useInventoryStore((state) => state.updatePortions);
-  const updateRecipes = useInventoryStore((state) => state.updateRecipes);
+  const replaceRecipesForMenu = useInventoryStore((state) => state.replaceRecipesForMenu);
   const upsertExternalMapping = useInventoryStore((state) => state.upsertExternalMapping);
   const setTab = useAppStore((state) => state.setTab);
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState(menuItems[0]?.id || '');
+  const [addingMenu, setAddingMenu] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState(false);
   const [editingPortions, setEditingPortions] = useState(false);
   const [mappingOpen, setMappingOpen] = useState(false);
   const [mappingError, setMappingError] = useState('');
   const [notice, setNotice] = useState('');
+  const [menuDraft, setMenuDraft] = useState({ name: '', category: 'biryani', recipe_base_quantity: 1, recipe_base_unit: 'kg' });
   const [recipeBaseDraft, setRecipeBaseDraft] = useState({ quantity: 1, unit: 'kg' });
-  const menuItem = menuItems[0];
+  const menuItem = menuItems.find((item) => item.id === selectedMenuItemId) || menuItems[0];
   const itemPortions = portions.filter((portion) => portion.menu_item_id === menuItem?.id);
   const itemRecipes = recipes.filter((recipe) => recipe.menu_item_id === menuItem?.id);
-  const [recipeDrafts, setRecipeDrafts] = useState({});
+  const [recipeDrafts, setRecipeDrafts] = useState([]);
   const [portionDrafts, setPortionDrafts] = useState([]);
   const [mappingDraft, setMappingDraft] = useState({
     external_item_name: '',
@@ -44,26 +48,51 @@ export default function MenuSetup() {
   }), [menuItem, itemRecipes]);
 
   function openRecipeEditor() {
-    setRecipeDrafts(Object.fromEntries(itemRecipes.map((recipe) => [recipe.id, {
-      quantity: recipe.quantity ?? recipe.quantity_per_kg,
-      unit: recipe.unit
-    }])));
+    setRecipeDrafts(itemRecipes.map((recipe) => ({ ...recipe, quantity: recipe.quantity ?? recipe.quantity_per_kg })));
     setRecipeBaseDraft(recipeBase);
     setEditingRecipe(true);
   }
 
   function saveRecipe() {
     updateMenuItem({ ...menuItem, recipe_base_quantity: recipeBaseDraft.quantity, recipe_base_unit: recipeBaseDraft.unit });
-    updateRecipes(itemRecipes.map((recipe) => ({
+    replaceRecipesForMenu(menuItem.id, recipeDrafts.filter((recipe) => recipe.ingredient_id && Number(recipe.quantity)).map((recipe) => ({
       ...recipe,
+      id: recipe.id || uid('recipe'),
       base_quantity: recipeBaseDraft.quantity,
       base_unit: recipeBaseDraft.unit,
-      quantity: Number(recipeDrafts[recipe.id]?.quantity || 0),
-      quantity_per_kg: Number(recipeDrafts[recipe.id]?.quantity || 0) / Number(recipeBaseDraft.quantity || 1),
-      unit: recipeDrafts[recipe.id]?.unit || recipe.unit
+      quantity: Number(recipe.quantity || 0),
+      quantity_per_kg: Number(recipe.quantity || 0) / Number(recipeBaseDraft.quantity || 1),
+      unit: recipe.unit
     })));
     setEditingRecipe(false);
     setNotice('Recipe saved. New batches will use this recipe base.');
+  }
+
+  function addRecipeDraft() {
+    const firstIngredient = ingredients.find((ingredient) => !recipeDrafts.some((recipe) => recipe.ingredient_id === ingredient.id));
+    if (!firstIngredient) return;
+    setRecipeDrafts([...recipeDrafts, {
+      id: uid('recipe'),
+      menu_item_id: menuItem.id,
+      ingredient_id: firstIngredient.id,
+      base_quantity: recipeBaseDraft.quantity,
+      base_unit: recipeBaseDraft.unit,
+      quantity: 0,
+      quantity_per_kg: 0,
+      unit: firstIngredient.unit
+    }]);
+  }
+
+  function saveMenuItem() {
+    if (!menuDraft.name.trim()) {
+      setNotice('Enter a menu item name.');
+      return;
+    }
+    const item = addMenuItem({ ...menuDraft, name: menuDraft.name.trim() });
+    setSelectedMenuItemId(item.id);
+    setAddingMenu(false);
+    setMenuDraft({ name: '', category: 'biryani', recipe_base_quantity: 1, recipe_base_unit: 'kg' });
+    setNotice('Menu item added. Add portions and recipe next.');
   }
 
   function openPortionEditor() {
@@ -126,10 +155,16 @@ export default function MenuSetup() {
             <h2 className="mt-1 text-2xl font-black text-text-dark">{menuItem?.name}</h2>
             <p className="mt-1 text-[15px] font-semibold text-text-muted">Recipe base: {recipeBase.quantity} {recipeBase.unit} cooked batch</p>
           </div>
-          <button type="button" onClick={() => setNotice('Add Menu Item will be enabled after the backend schema is migrated.')} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-base font-black text-white">
+          <button type="button" onClick={() => setAddingMenu(true)} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-base font-black text-white">
             <Plus size={18} /> Add Menu Item
           </button>
         </div>
+        <label className="mt-4 block text-[13px] font-black uppercase text-text-muted">
+          Menu item
+          <select value={menuItem?.id || ''} onChange={(event) => setSelectedMenuItemId(event.target.value)} className="mt-2 h-12 w-full rounded-lg border border-border bg-white px-3 text-base font-bold text-text-dark">
+            {menuItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </label>
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
@@ -225,20 +260,61 @@ export default function MenuSetup() {
               </select>
             </div>
           </div>
-          {itemRecipes.map((recipe) => {
+          {recipeDrafts.map((recipe, index) => {
             const ingredient = ingredients.find((item) => item.id === recipe.ingredient_id);
             return (
               <label key={recipe.id} className="mb-3 block text-base font-bold text-text-dark">
-                {ingredient?.name}
+                Ingredient
+                <select value={recipe.ingredient_id} onChange={(event) => {
+                  const ingredient = ingredients.find((item) => item.id === event.target.value);
+                  setRecipeDrafts(recipeDrafts.map((item, itemIndex) => itemIndex === index ? { ...item, ingredient_id: event.target.value, unit: ingredient?.unit || item.unit } : item));
+                }} className="mt-2 h-12 w-full rounded-lg border border-border px-3 text-base font-bold">
+                  {ingredients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
                 <div className="mt-2 grid grid-cols-[1fr_110px] gap-2">
-                  <input type="number" step="0.001" value={recipeDrafts[recipe.id]?.quantity ?? ''} onChange={(event) => setRecipeDrafts({ ...recipeDrafts, [recipe.id]: { ...recipeDrafts[recipe.id], quantity: event.target.value } })} className="h-12 rounded-lg border border-border px-3 text-base font-bold" />
-                  <select value={recipeDrafts[recipe.id]?.unit || recipe.unit} onChange={(event) => setRecipeDrafts({ ...recipeDrafts, [recipe.id]: { ...recipeDrafts[recipe.id], unit: event.target.value } })} className="h-12 rounded-lg border border-border px-3 text-base font-bold">
+                  <input type="number" step="0.001" value={recipe.quantity ?? ''} onChange={(event) => setRecipeDrafts(recipeDrafts.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: event.target.value } : item))} className="h-12 rounded-lg border border-border px-3 text-base font-bold" />
+                  <select value={recipe.unit} onChange={(event) => setRecipeDrafts(recipeDrafts.map((item, itemIndex) => itemIndex === index ? { ...item, unit: event.target.value } : item))} className="h-12 rounded-lg border border-border px-3 text-base font-bold">
                     {unitOptions.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
                   </select>
                 </div>
+                <button type="button" onClick={() => setRecipeDrafts(recipeDrafts.filter((_, itemIndex) => itemIndex !== index))} className="mt-2 h-9 rounded-lg border border-border px-3 text-[13px] font-black text-danger">
+                  Remove ingredient
+                </button>
               </label>
             );
           })}
+          <button type="button" onClick={addRecipeDraft} className="mt-2 inline-flex h-11 items-center gap-2 rounded-lg border border-border px-4 font-black text-text-dark">
+            <Plus size={18} /> Add Ingredient
+          </button>
+        </Modal>
+      ) : null}
+
+      {addingMenu ? (
+        <Modal
+          title="Add Menu Item"
+          onClose={() => setAddingMenu(false)}
+          footer={<ModalActions onCancel={() => setAddingMenu(false)} onSave={saveMenuItem} />}
+        >
+          <label className="block text-base font-bold text-text-dark">
+            Item name
+            <input value={menuDraft.name} onChange={(event) => setMenuDraft({ ...menuDraft, name: event.target.value })} className="mt-2 h-12 w-full rounded-lg border border-border px-3 text-base font-bold" placeholder="Chicken Sambar Rice" />
+          </label>
+          <label className="mt-3 block text-base font-bold text-text-dark">
+            Category
+            <input value={menuDraft.category} onChange={(event) => setMenuDraft({ ...menuDraft, category: event.target.value })} className="mt-2 h-12 w-full rounded-lg border border-border px-3 text-base font-bold" placeholder="non veg" />
+          </label>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <label className="block text-base font-bold text-text-dark">
+              Recipe base qty
+              <input type="number" value={menuDraft.recipe_base_quantity} onChange={(event) => setMenuDraft({ ...menuDraft, recipe_base_quantity: Number(event.target.value || 1) })} className="mt-2 h-12 w-full rounded-lg border border-border px-3 text-base font-bold" />
+            </label>
+            <label className="block text-base font-bold text-text-dark">
+              Unit
+              <select value={menuDraft.recipe_base_unit} onChange={(event) => setMenuDraft({ ...menuDraft, recipe_base_unit: event.target.value })} className="mt-2 h-12 w-full rounded-lg border border-border px-3 text-base font-bold">
+                <option value="kg">kg cooked</option>
+              </select>
+            </label>
+          </div>
         </Modal>
       ) : null}
 

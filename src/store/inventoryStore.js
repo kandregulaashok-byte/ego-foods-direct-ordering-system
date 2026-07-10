@@ -135,6 +135,27 @@ export const useInventoryStore = create((set, get) => ({
       return { batchLogs };
     });
   },
+  addMenuItem: (input) => {
+    const menuItem = {
+      id: uid('menu'),
+      name: input.name,
+      category: input.category || 'menu',
+      recipe_base_quantity: Number(input.recipe_base_quantity || 1),
+      recipe_base_unit: input.recipe_base_unit || 'kg',
+      cooked_low_stock_threshold_kg: Number(input.cooked_low_stock_threshold_kg || 1),
+      price_full: Number(input.price_full || 0),
+      price_half: Number(input.price_half || 0),
+      portion_full_grams: Number(input.portion_full_grams || 0),
+      portion_half_grams: Number(input.portion_half_grams || 0),
+      is_active: true
+    };
+    set((state) => {
+      const menuItems = [menuItem, ...state.menuItems];
+      persistInventory({ ...state, menuItems });
+      return { menuItems };
+    });
+    return menuItem;
+  },
   updateMenuItem: (menuItem) =>
     set((state) => {
       const menuItems = state.menuItems.map((item) => (item.id === menuItem.id ? menuItem : item));
@@ -149,6 +170,15 @@ export const useInventoryStore = create((set, get) => ({
       ];
       persistInventory({ ...state, portions: nextPortions });
       return { portions: nextPortions };
+    }),
+  replaceRecipesForMenu: (menuItemId, recipes) =>
+    set((state) => {
+      const nextRecipes = [
+        ...state.recipes.filter((recipe) => recipe.menu_item_id !== menuItemId),
+        ...recipes.map((recipe) => ({ ...recipe, menu_item_id: menuItemId }))
+      ];
+      persistInventory({ ...state, recipes: nextRecipes });
+      return { recipes: nextRecipes };
     }),
   updateRecipes: (recipes) =>
     set((state) => {
